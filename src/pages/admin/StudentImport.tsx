@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Upload,
   FileSpreadsheet,
@@ -27,6 +27,18 @@ interface ImportResult {
   errors: string[];
 }
 
+interface StudentRecord {
+  id: string;
+  student_id: string;
+  full_name: string;
+  email: string;
+  faculty_id: string | null;
+  department_id: string | null;
+  status: string;
+  faculties: { name: string } | null;
+  departments: { name: string } | null;
+}
+
 interface StudentImportProps {
   onImport: () => void;
 }
@@ -37,7 +49,35 @@ export function StudentImport({ onImport }: StudentImportProps) {
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [preview, setPreview] = useState<ImportedStudent[]>([]);
   const [error, setError] = useState('');
+  const [studentRecords, setStudentRecords] = useState<StudentRecord[]>([]);
+  const [isLoadingRecords, setIsLoadingRecords] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    loadStudentRecords();
+  }, []);
+
+  async function loadStudentRecords() {
+    setIsLoadingRecords(true);
+    const { data } = await supabase
+      .from('student_records')
+      .select(`
+        id,
+        student_id,
+        full_name,
+        email,
+        faculty_id,
+        department_id,
+        status,
+        faculties(name),
+        departments(name)
+      `)
+      .order('created_at', { ascending: false });
+    if (data) {
+      setStudentRecords(data as StudentRecord[]);
+    }
+    setIsLoadingRecords(false);
+  }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selectedFile = e.target.files?.[0];
@@ -98,8 +138,8 @@ export function StudentImport({ onImport }: StudentImportProps) {
           student_id: values[headers.indexOf('student_id')]?.trim() || '',
           full_name: values[headers.indexOf('full_name')]?.trim() || '',
           email: values[headers.indexOf('email')]?.trim() || '',
-          faculty: values[headers.indexOf('faculty')]?.trim() || '',
-          department: values[headers.indexOf('department')]?.trim() || '',
+          faculty: values[headers.indexOf('faculty')]?.trim() || values[headers.indexOf('faculty_code')]?.trim() || '',
+          department: values[headers.indexOf('department')]?.trim() || values[headers.indexOf('department_code')]?.trim() || '',
           status: values[headers.indexOf('status')]?.trim() || 'active',
         });
       }
@@ -107,10 +147,18 @@ export function StudentImport({ onImport }: StudentImportProps) {
       const { data: faculties } = await supabase.from('faculties').select('id, name, code');
       const { data: departments } = await supabase.from('departments').select('id, name, code, faculty_id');
 
-      const facultyMap = new Map(faculties?.map((f) => [f.name.toLowerCase(), f.id]) || []);
-      const deptMap = new Map(
-        departments?.map((d) => [`${d.name.toLowerCase()}_${d.faculty_id}`, d.id]) || []
-      );
+      // Map by both name and code
+      const facultyMap = new Map<string, string>();
+      faculties?.forEach((f) => {
+        facultyMap.set(f.name.toLowerCase().trim(), f.id);
+        facultyMap.set(f.code.toLowerCase(), f.id);
+      });
+
+      const deptMap = new Map<string, string>();
+      departments?.forEach((d) => {
+        deptMap.set(`${d.name.toLowerCase().trim()}_${d.faculty_id}`, d.id);
+        deptMap.set(`${d.code.toLowerCase()}_${d.faculty_id}`, d.id);
+      });
 
       let successCount = 0;
       let failedCount = 0;
@@ -123,11 +171,28 @@ export function StudentImport({ onImport }: StudentImportProps) {
           continue;
         }
 
-        const facultyId = facultyMap.get(student.faculty.toLowerCase());
-        let departmentId = null;
+        // Try to find faculty by name first, then by code
+        let facultyId = facultyMap.get(student.faculty.toLowerCase().trim());
+        if (!facultyId) {
+          const faculty = faculties?.find(
+            (f) => f.name.toLowerCase().trim() === student.faculty.toLowerCase().trim() ||
+                   f.code.toLowerCase() === student.faculty.toLowerCase()
+          );
+          facultyId = faculty?.id || null;
+        }
 
+        let departmentId = null;
         if (facultyId && student.department) {
-          departmentId = deptMap.get(`${student.department.toLowerCase()}_${facultyId}`);
+          // Try by name first, then by code
+          departmentId = deptMap.get(`${student.department.toLowerCase().trim()}_${facultyId}`);
+          if (!departmentId) {
+            const dept = departments?.find(
+              (d) => d.faculty_id === facultyId &&
+                    (d.name.toLowerCase().trim() === student.department.toLowerCase().trim() ||
+                     d.code.toLowerCase() === student.department.toLowerCase())
+            );
+            departmentId = dept?.id || null;
+          }
         }
 
         const { error: insertError } = await supabase.from('student_records').upsert(
@@ -152,6 +217,7 @@ export function StudentImport({ onImport }: StudentImportProps) {
 
       setImportResult({ success: successCount, failed: failedCount, errors });
       onImport();
+      loadStudentRecords();
     } catch {
       setError('Failed to process file');
     } finally {
@@ -170,7 +236,7 @@ export function StudentImport({ onImport }: StudentImportProps) {
   }
 
   function downloadTemplate() {
-    const template = 'student_id,full_name,email,faculty,department,status\n03212345,John Doe,03212345@university.edu,Engineering,Computer Science,active\n03212346,Jane Smith,03212346@university.edu,Science,Physics,active';
+    const template = 'student_id,full_name,email,faculty_code,department_code,status\n03212345,John Doe,03212345@university.edu,FAST,CS,active\n03212346,Jane Smith,03212346@university.edu,FOE,ENG,active';
     const blob = new Blob([template], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -353,6 +419,69 @@ export function StudentImport({ onImport }: StudentImportProps) {
           </div>
         </div>
       )}
+
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+            <Users className="w-5 h-5 text-blue-600" />
+            All Student Records ({studentRecords.length})
+          </h3>
+          <button
+            onClick={loadStudentRecords}
+            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+          >
+            Refresh
+          </button>
+        </div>
+        <div className="overflow-x-auto">
+          {isLoadingRecords ? (
+            <div className="p-8 flex items-center justify-center">
+              <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+            </div>
+          ) : studentRecords.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">
+              No student records found. Import students above.
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Student ID</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Name</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Email</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Faculty</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Department</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {studentRecords.map((student) => (
+                  <tr key={student.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm text-gray-900 font-mono">{student.student_id}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900">{student.full_name}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{student.email}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {student.faculties?.name || '-'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {student.departments?.name || '-'}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        student.status === 'active'
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        {student.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
