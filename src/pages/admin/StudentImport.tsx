@@ -276,7 +276,11 @@ export function StudentImport({ onImport }: StudentImportProps) {
         <div className="bg-gray-50 rounded-xl p-4 mb-4">
           <p className="text-sm text-gray-600 mb-2 font-medium">Required columns:</p>
           <div className="flex flex-wrap gap-2">
+<<<<<<< HEAD
             {['student_id', 'full_name', 'email', 'faculty', 'department', 'status (optional)'].map((col) => (
+=======
+            {['student_id', 'full_name', 'email', 'faculty_code', 'department_code', 'status (optional)'].map((col) => (
+>>>>>>> 2b004aa63be804033ecd81d14089a68b44f23816
               <span key={col} className="px-3 py-1 bg-white rounded-lg text-xs font-medium text-gray-700 border">
                 {col}
               </span>
