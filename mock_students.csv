@@ -1,0 +1,21 @@
+student_id,full_name,email,faculty_code,department_code,status
+0323080001,John Doe,0323080001@university.edu,FAST,CS,active
+0323080002,Jane Smith,0323080002@university.edu,FAST,CS,active
+0323080003,Michael Johnson,0323080003@university.edu,FAST,ENG,active
+0323080004,Emily Brown,0323080004@university.edu,FAST,ENG,active
+0323080005,David Wilson,0323080005@university.edu,FOE,BME,active
+0323080006,Sarah Davis,0323080006@university.edu,FOE,BME,active
+0323080007,James Miller,0323080007@university.edu,FOE,BME,active
+0323080008,Jennifer Garcia,0323080008@university.edu,FOE,BME,active
+0323080009,Robert Martinez,0323080009@university.edu,FAD,FS,active
+0323080010,Lisa Anderson,0323080010@university.edu,FAD,FS,active
+0323080011,William Taylor,0323080011@university.edu,FAD,IA,active
+0323080012,Patricia Thomas,0323080012@university.edu,FAD,IA,active
+0323080013,Charles Jackson,0323080013@university.edu,FAST,CS,active
+0323080014,Elizabeth White,0323080014@university.edu,FAST,ENG,active
+0323080015,Christopher Harris,0323080015@university.edu,FOE,BME,active
+0323080016,Daniel Clark,0323080016@university.edu,FOE,BME,active
+0323080017,Michelle Lewis,0323080017@university.edu,FAST,CS,active
+0323080018,Matthew Robinson,0323080018@university.edu,FAST,ENG,active
+0323080019,Ashley Walker,0323080019@university.edu,FAD,FS,active
+0323080020,Joshua Hall,0323080020@university.edu,FOE,BME,active
