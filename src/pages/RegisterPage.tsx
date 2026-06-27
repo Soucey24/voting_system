@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Vote,
   ArrowRight,
@@ -27,6 +27,7 @@ interface FormData {
 }
 
 export function RegisterPage() {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<FormData>({
     studentId: '',
@@ -157,7 +158,7 @@ export function RegisterPage() {
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!formData.email.startsWith('032') || !formData.email.includes('@')) {
-      newErrors.email = 'Please use your university email (e.g., 032xxxx@university.edu)';
+      newErrors.email = 'Please use your university email (e.g., 032xxxx@htu.edu.gh)';
     }
 
     const passwordError = validatePassword(formData.password);
@@ -193,6 +194,9 @@ export function RegisterPage() {
         password: formData.password,
         options: {
           emailRedirectTo: `${window.location.origin}/verify-email`,
+          data: {
+            email_confirm: true
+          }
         },
       });
 
@@ -211,7 +215,7 @@ export function RegisterPage() {
           student_record_id: studentRecord.id,
           faculty_id: formData.facultyId,
           department_id: formData.departmentId,
-          is_email_verified: false,
+          is_email_verified: true,
           is_face_enrolled: false,
         });
 
@@ -220,7 +224,20 @@ export function RegisterPage() {
           return;
         }
 
-        setStep(3);
+        // Auto sign-in after registration
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (signInError) {
+          // Redirect to login if auto sign-in fails
+          navigate('/login');
+          return;
+        }
+
+        // Redirect to face enrollment
+        navigate('/face-enrollment');
       }
     } catch {
       setErrors({ form: 'An unexpected error occurred' });
@@ -428,7 +445,7 @@ export function RegisterPage() {
                       className={`w-full pl-12 pr-4 py-3.5 rounded-xl border ${
                         errors.email ? 'border-red-500' : 'border-gray-300'
                       } focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all`}
-                      placeholder="032xxxx@university.edu"
+                      placeholder="032xxxx@htu.edu.gh"
                     />
                   </div>
                   {errors.email && (
