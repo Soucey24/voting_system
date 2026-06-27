@@ -1,9 +1,5 @@
 import { useState, useEffect } from 'react';
-<<<<<<< HEAD
-import { Link } from 'react-router-dom';
-=======
 import { Link, useNavigate } from 'react-router-dom';
->>>>>>> 2b004aa63be804033ecd81d14089a68b44f23816
 import {
   Vote,
   ArrowRight,
@@ -31,10 +27,7 @@ interface FormData {
 }
 
 export function RegisterPage() {
-<<<<<<< HEAD
-=======
   const navigate = useNavigate();
->>>>>>> 2b004aa63be804033ecd81d14089a68b44f23816
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<FormData>({
     studentId: '',
@@ -165,11 +158,7 @@ export function RegisterPage() {
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!formData.email.startsWith('032') || !formData.email.includes('@')) {
-<<<<<<< HEAD
-      newErrors.email = 'Please use your university email (e.g., 032xxxx@university.edu)';
-=======
       newErrors.email = 'Please use your university email (e.g., 032xxxx@htu.edu.gh)';
->>>>>>> 2b004aa63be804033ecd81d14089a68b44f23816
     }
 
     const passwordError = validatePassword(formData.password);
@@ -200,17 +189,14 @@ export function RegisterPage() {
         return;
       }
 
-      const { data: { user: authUser }, error: signUpError } = await supabase.auth.signUp({
+      const { data: { user: authUser } = {}, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
           emailRedirectTo: `${window.location.origin}/verify-email`,
-<<<<<<< HEAD
-=======
           data: {
-            email_confirm: true
-          }
->>>>>>> 2b004aa63be804033ecd81d14089a68b44f23816
+            email_confirm: true,
+          },
         },
       });
 
@@ -221,7 +207,6 @@ export function RegisterPage() {
 
       if (authUser) {
         const { error: insertError } = await supabase.from('users').insert({
-          id: authUser.id,
           email: formData.email,
           password_hash: '',
           role: 'student',
@@ -229,11 +214,7 @@ export function RegisterPage() {
           student_record_id: studentRecord.id,
           faculty_id: formData.facultyId,
           department_id: formData.departmentId,
-<<<<<<< HEAD
-          is_email_verified: false,
-=======
           is_email_verified: true,
->>>>>>> 2b004aa63be804033ecd81d14089a68b44f23816
           is_face_enrolled: false,
         });
 
@@ -242,10 +223,7 @@ export function RegisterPage() {
           return;
         }
 
-<<<<<<< HEAD
-        setStep(3);
-=======
-        // Auto sign-in after registration
+
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email: formData.email,
           password: formData.password,
@@ -259,10 +237,7 @@ export function RegisterPage() {
 
         // Redirect to face enrollment
         navigate('/face-enrollment');
->>>>>>> 2b004aa63be804033ecd81d14089a68b44f23816
       }
-    } catch {
-      setErrors({ form: 'An unexpected error occurred' });
     } finally {
       setIsLoading(false);
     }
@@ -467,11 +442,10 @@ export function RegisterPage() {
                       className={`w-full pl-12 pr-4 py-3.5 rounded-xl border ${
                         errors.email ? 'border-red-500' : 'border-gray-300'
                       } focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all`}
-<<<<<<< HEAD
-                      placeholder="032xxxx@university.edu"
-=======
+
+
                       placeholder="032xxxx@htu.edu.gh"
->>>>>>> 2b004aa63be804033ecd81d14089a68b44f23816
+
                     />
                   </div>
                   {errors.email && (
