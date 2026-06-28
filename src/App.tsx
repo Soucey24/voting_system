@@ -16,6 +16,17 @@ import { StudentDashboard } from './pages/StudentDashboard';
 import { OfficerDashboard } from './pages/OfficerDashboard';
 import { AuditorDashboard } from './pages/AuditorDashboard';
 
+// Election Officer Pages - Comprehensive Modules
+import { CreateElectionSlotPage } from './pages/officer/CreateElectionSlotPage';
+import { PositionManagementNewPage } from './pages/officer/PositionManagementNewPage';
+import { CandidateApprovalNewPage } from './pages/officer/CandidateApprovalNewPage';
+import { PaymentManagementPage } from './pages/officer/PaymentManagementPage';
+import { TurnoutMonitoringNewPage } from './pages/officer/TurnoutMonitoringNewPage';
+import { ResultsPublishingNewPage } from './pages/officer/ResultsPublishingNewPage';
+import { StudentDataUploadNewPage } from './pages/officer/StudentDataUploadNewPage';
+import { ElectionManagementNewPage } from './pages/officer/ElectionManagementNewPage';
+import { ReportsNewPage } from './pages/officer/ReportsNewPage';
+
 function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: string[] }) {
   const { isAuthenticated, user, isLoading } = useAuth();
 
@@ -126,6 +137,96 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={['election_officer']}>
             <OfficerDashboard />
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Feature 2: Create Election Slots */}
+      <Route
+        path="/officer/election/create"
+        element={
+          <ProtectedRoute allowedRoles={['election_officer']}>
+            <CreateElectionSlotPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Feature 4: Position Management */}
+      <Route
+        path="/officer/election/:electionId/positions"
+        element={
+          <ProtectedRoute allowedRoles={['election_officer']}>
+            <PositionManagementNewPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Feature 5: Candidate Approval */}
+      <Route
+        path="/officer/election/:electionId/candidates"
+        element={
+          <ProtectedRoute allowedRoles={['election_officer']}>
+            <CandidateApprovalNewPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Feature 3: Payment Management */}
+      <Route
+        path="/officer/election/:electionId/payments"
+        element={
+          <ProtectedRoute allowedRoles={['election_officer']}>
+            <PaymentManagementPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Feature 8: Turnout Monitoring */}
+      <Route
+        path="/officer/election/:electionId/turnout"
+        element={
+          <ProtectedRoute allowedRoles={['election_officer']}>
+            <TurnoutMonitoringNewPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Feature 9: Publish Results */}
+      <Route
+        path="/officer/election/:electionId/results"
+        element={
+          <ProtectedRoute allowedRoles={['election_officer']}>
+            <ResultsPublishingNewPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Feature 6: Student Data Management */}
+      <Route
+        path="/officer/election/:electionId/students"
+        element={
+          <ProtectedRoute allowedRoles={['election_officer']}>
+            <StudentDataUploadNewPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Feature 7: Election Management (publish, pause, resume, close) */}
+      <Route
+        path="/officer/election/:electionId/manage"
+        element={
+          <ProtectedRoute allowedRoles={['election_officer']}>
+            <ElectionManagementNewPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Feature 10: Reports */}
+      <Route
+        path="/officer/reports"
+        element={
+          <ProtectedRoute allowedRoles={['election_officer']}>
+            <ReportsNewPage />
           </ProtectedRoute>
         }
       />

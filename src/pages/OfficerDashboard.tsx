@@ -1,8 +1,181 @@
-import { Vote, Bell, LogOut, Calendar, Users, CheckCircle2, Clock, BarChart3, FileText, Settings } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Vote, Bell, LogOut, Calendar, Users, CheckCircle2, Clock, BarChart3, Plus, Settings } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { getOfficerElections, getActiveElections, getUpcomingElections, getCompletedElections } from '../services/election';
+import { StatisticCard } from '../components/officer/StatisticCard';
+import { ElectionCard } from '../components/officer/ElectionCard';
+import { TurnoutMonitor } from '../components/officer/TurnoutMonitor';
+import type { Election } from '../types';
+
+// Mock mode
+const MOCK_MODE = true;
+
+// Sample mock elections
+const MOCK_ELECTIONS: Election[] = [
+  {
+    id: '1',
+    officer_id: 'officer-1',
+    title: 'Student Council Elections 2024',
+    description: 'Annual elections for student council positions',
+    academic_year: '2024/2025',
+    category: 'university',
+    scope_id: undefined,
+    status: 'active',
+    nomination_start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    nomination_end: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+    voting_start: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    voting_end: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+    slot_application_fee: 500,
+    enable_payment: true,
+    total_voters: 5000,
+    total_votes_cast: 3200,
+    created_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: '2',
+    officer_id: 'officer-1',
+    title: 'Faculty Representatives Election',
+    description: 'Election for faculty representatives',
+    academic_year: '2024/2025',
+    category: 'faculty',
+    scope_id: 'faculty-1',
+    status: 'published',
+    nomination_start: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
+    nomination_end: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(),
+    voting_start: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000).toISOString(),
+    voting_end: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000).toISOString(),
+    slot_application_fee: 300,
+    enable_payment: true,
+    total_voters: 1500,
+    total_votes_cast: 0,
+    created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: '3',
+    officer_id: 'officer-1',
+    title: 'Class Representatives 2024',
+    description: 'Class rep elections for 2024',
+    academic_year: '2024/2025',
+    category: 'department',
+    scope_id: 'dept-1',
+    status: 'closed',
+    nomination_start: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
+    nomination_end: new Date(Date.now() - 80 * 24 * 60 * 60 * 1000).toISOString(),
+    voting_start: new Date(Date.now() - 70 * 24 * 60 * 60 * 1000).toISOString(),
+    voting_end: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+    slot_application_fee: 200,
+    enable_payment: false,
+    total_voters: 800,
+    total_votes_cast: 650,
+    created_at: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+];
+
+type TabType = 'overview' | 'active' | 'upcoming' | 'completed';
 
 export function OfficerDashboard() {
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [elections, setElections] = useState<Election[]>([]);
+  const [filteredElections, setFilteredElections] = useState<Election[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Load elections on mount
+  useEffect(() => {
+    loadElections();
+  }, []);
+
+  // Load elections when tab changes
+  useEffect(() => {
+    if (activeTab === 'overview') {
+      loadElections();
+    } else {
+      filterElections(activeTab);
+    }
+  }, [activeTab]);
+
+  const loadElections = async () => {
+    if (!user?.id) return;
+
+    try {
+      setIsLoading(true);
+      
+      if (MOCK_MODE) {
+        // Use mock data + localStorage
+        const mockElectionsFromStorage = JSON.parse(localStorage.getItem('mock_elections') || '[]');
+        const allMockElections = [...MOCK_ELECTIONS, ...mockElectionsFromStorage];
+        const userElections = allMockElections.filter(e => !e.officer_id || e.officer_id === user.id || e.officer_id === 'officer-1');
+        
+        setElections(userElections);
+        setFilteredElections(userElections);
+      } else {
+        const data = await getOfficerElections(user.id);
+        setElections(data || []);
+        setFilteredElections(data || []);
+      }
+    } catch (error) {
+      console.error('Failed to load elections:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filterElections = async (tab: TabType) => {
+    if (!user?.id) return;
+
+    try {
+      setIsLoading(true);
+      let data: Election[] = [];
+
+      if (MOCK_MODE) {
+        // Filter mock data
+        const mockElectionsFromStorage = JSON.parse(localStorage.getItem('mock_elections') || '[]');
+        const allMockElections = [...MOCK_ELECTIONS, ...mockElectionsFromStorage];
+        const userElections = allMockElections.filter(e => !e.officer_id || e.officer_id === user.id || e.officer_id === 'officer-1');
+
+        switch (tab) {
+          case 'active':
+            data = userElections.filter(e => e.status === 'active');
+            break;
+          case 'upcoming':
+            data = userElections.filter(e => e.status === 'published' || e.status === 'draft');
+            break;
+          case 'completed':
+            data = userElections.filter(e => e.status === 'closed' || e.status === 'results_published');
+            break;
+        }
+      } else {
+        switch (tab) {
+          case 'active':
+            data = await getActiveElections(user.id);
+            break;
+          case 'upcoming':
+            data = await getUpcomingElections(user.id);
+            break;
+          case 'completed':
+            data = await getCompletedElections(user.id);
+            break;
+        }
+      }
+
+      setFilteredElections(data || []);
+    } catch (error) {
+      console.error('Failed to filter elections:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const activeElectionsCount = elections.filter((e) => e.status === 'active').length;
+  const upcomingElectionsCount = elections.filter((e) => e.status === 'draft').length;
+  const completedElectionsCount = elections.filter((e) => ['closed', 'results_published'].includes(e.status)).length;
+  const totalVoters = elections.reduce((sum, e) => sum + e.total_voters, 0);
+  const totalVotesCast = elections.reduce((sum, e) => sum + e.total_votes_cast, 0);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -38,101 +211,124 @@ export function OfficerDashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Election Officer Dashboard</h1>
-          <p className="text-gray-600">Manage elections under your assigned scope</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+            <p className="text-gray-600">Manage elections under your assigned scope</p>
+          </div>
+          <button
+            onClick={() => navigate('/officer/election/create')}
+            className="flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors"
+          >
+            <Plus className="w-5 h-5" />
+            New Election
+          </button>
         </div>
 
+        {/* Statistics Grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">2</p>
-                <p className="text-sm text-gray-500">Active Elections</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                <Users className="w-6 h-6 text-green-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">450</p>
-                <p className="text-sm text-gray-500">Registered Voters</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                <CheckCircle2 className="w-6 h-6 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">328</p>
-                <p className="text-sm text-gray-500">Votes Cast</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                <Clock className="w-6 h-6 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">48h</p>
-                <p className="text-sm text-gray-500">Time Remaining</p>
-              </div>
-            </div>
-          </div>
+          <StatisticCard
+            icon={<Calendar className="w-6 h-6" />}
+            label="Active Elections"
+            value={activeElectionsCount}
+            color="blue"
+          />
+          <StatisticCard
+            icon={<Users className="w-6 h-6" />}
+            label="Total Voters"
+            value={totalVoters}
+            color="green"
+          />
+          <StatisticCard
+            icon={<CheckCircle2 className="w-6 h-6" />}
+            label="Votes Cast"
+            value={totalVotesCast}
+            color="purple"
+          />
+          <StatisticCard
+            icon={<Clock className="w-6 h-6" />}
+            label="Upcoming Elections"
+            value={upcomingElectionsCount}
+            color="orange"
+          />
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
-          <div className="flex items-center gap-3 mb-6">
-            <BarChart3 className="w-6 h-6 text-purple-600" />
-            <h2 className="text-xl font-bold text-gray-900">Current Election Progress</h2>
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">SRC Elections 2024</span>
-                <span className="text-sm text-gray-500">73% turnout</span>
-              </div>
-              <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full bg-purple-500 rounded-full" style={{ width: '73%' }}></div>
-              </div>
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">Faculty of Engineering Election</span>
-                <span className="text-sm text-gray-500">45% turnout</span>
-              </div>
-              <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full bg-green-500 rounded-full" style={{ width: '45%' }}></div>
-              </div>
-            </div>
-          </div>
+        {/* Tabs */}
+        <div className="bg-white rounded-t-lg border border-b-0 border-gray-200 p-4 flex gap-4">
+          {(['overview', 'active', 'upcoming', 'completed'] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 font-medium rounded-lg transition-colors ${
+                activeTab === tab
+                  ? 'bg-purple-100 text-purple-700'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {tab === 'overview' && elections.length > 0 && (
+                <span className="ml-2 text-sm">({elections.length})</span>
+              )}
+              {tab === 'active' && (
+                <span className="ml-2 text-sm">({activeElectionsCount})</span>
+              )}
+              {tab === 'upcoming' && (
+                <span className="ml-2 text-sm">({upcomingElectionsCount})</span>
+              )}
+              {tab === 'completed' && (
+                <span className="ml-2 text-sm">({completedElectionsCount})</span>
+              )}
+            </button>
+          ))}
         </div>
 
-        <div className="bg-purple-600 rounded-2xl p-6 sm:p-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="text-center sm:text-left">
-              <h2 className="text-xl font-bold text-white mb-2">Phase 1 - Foundation Complete</h2>
-              <p className="text-purple-100">Full election management features coming in Phase 2.</p>
-            </div>
-            <div className="flex items-center gap-2 px-6 py-3 bg-white/20 text-white rounded-xl font-medium">
-              <FileText className="w-5 h-5" />
-              <span>Coming Soon</span>
+        {/* Elections Grid */}
+        {isLoading ? (
+          <div className="bg-white rounded-b-lg border border-gray-200 p-12 text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+            <p className="text-gray-600 mt-4">Loading elections...</p>
+          </div>
+        ) : filteredElections.length === 0 ? (
+          <div className="bg-white rounded-b-lg border border-gray-200 p-12 text-center">
+            <BarChart3 className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-600">
+              {activeTab === 'overview'
+                ? 'No elections created yet. Create your first election to get started.'
+                : `No ${activeTab} elections`}
+            </p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-b-lg border border-gray-200 p-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredElections.map((election) => (
+                <ElectionCard
+                  key={election.id}
+                  election={election}
+                  onViewDetails={(electionId) => {
+                    // Navigate to election management page
+                    navigate(`/officer/election/${electionId}/manage`);
+                  }}
+                />
+              ))}
             </div>
           </div>
-        </div>
+        )}
+
+        {/* Turnout Monitor for Active Elections */}
+        {activeElectionsCount > 0 && (
+          <div className="mt-8">
+            <TurnoutMonitor
+              elections={elections
+                .filter((e) => e.status === 'active')
+                .map((e) => ({
+                  id: e.id,
+                  title: e.title,
+                  totalVoters: e.total_voters,
+                  votesCast: e.total_votes_cast,
+                }))}
+            />
+          </div>
+        )}
       </main>
     </div>
   );
