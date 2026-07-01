@@ -142,7 +142,32 @@ export function LandingPage() {
 
       <section className="bg-slate-50 py-20 lg:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl text-center">
+          <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm sm:p-10 lg:p-12">
+            <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
+              <div>
+                <p className="inline-flex rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700">Our democratic manifesto</p>
+                <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">A calm, credible foundation for campus democracy.</h2>
+                <p className="mt-4 text-lg leading-8 text-slate-600">
+                  UEVS is designed to make every election feel clear, inclusive, and trustworthy, whether the vote is cast from a phone or a desktop.
+                </p>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {[
+                  ['Transparency', 'Every voter touchpoint is guided by a clear and auditable experience.'],
+                  ['Accessibility', 'The platform is responsive and welcoming across devices and skill levels.'],
+                  ['Integrity', 'Identity checks and secure systems reduce the chance of manipulation.'],
+                  ['Community', 'Built around student participation, fair representation, and confidence.'],
+                ].map(([title, description]) => (
+                  <div key={title} className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                    <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
+                    <p className="mt-2 text-sm leading-7 text-slate-600">{description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="mx-auto mt-16 max-w-2xl text-center">
             <p className="inline-flex rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700">Why students trust UEVS</p>
             <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">A polished platform for fair and reliable elections.</h2>
             <p className="mt-4 text-lg text-slate-600">Every experience is designed to feel secure, simple, and confidently modern.</p>

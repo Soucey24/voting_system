@@ -36,120 +36,136 @@ export function Header() {
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isLandingPage ? "bg-transparent" : "bg-white shadow-md"
+        isLandingPage
+          ? "border-b border-white/10 bg-slate-950/80 text-white shadow-lg shadow-slate-950/20 backdrop-blur-xl"
+          : "border-b border-slate-200/80 bg-white/90 text-slate-900 shadow-sm backdrop-blur-xl"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16 sm:h-20">
-          <Link to="/" className="flex items-center gap-2 sm:gap-3">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-              <Vote className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </div>
-            <div className="hidden sm:block">
-              <span className="text-lg sm:text-xl font-bold text-gray-900">
-                UEVS
-              </span>
-              <p className="text-xs text-gray-500 -mt-1">
-                Electronic Voting System
-              </p>
-            </div>
-          </Link>
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:h-20 sm:px-6 lg:px-8">
+        <Link to="/" className="flex items-center gap-2 sm:gap-3">
+          <div className={`flex h-10 w-10 items-center justify-center rounded-2xl shadow-lg sm:h-12 sm:w-12 ${isLandingPage ? "bg-blue-600" : "bg-slate-900"}`}>
+            <Vote className="h-5 w-5 text-white sm:h-6 sm:w-6" />
+          </div>
+          <div className="hidden sm:block">
+            <span className={`text-lg font-bold sm:text-xl ${isLandingPage ? "text-white" : "text-slate-900"}`}>
+              UEVS
+            </span>
+            <p className={`-mt-1 text-xs ${isLandingPage ? "text-slate-300" : "text-slate-500"}`}>
+              Electronic Voting System
+            </p>
+          </div>
+        </Link>
 
-          <nav className="hidden lg:flex items-center gap-1">
-            {navLinks.map((link) => (
+        <nav className="hidden items-center gap-1 lg:flex">
+          {navLinks.map((link) => {
+            const isActive = location.pathname === link.to;
+            return (
               <Link
                 key={link.to}
                 to={link.to}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  location.pathname === link.to
-                    ? "text-blue-600 bg-blue-50"
+                className={`rounded-full px-4 py-2 font-medium transition-colors ${
+                  isActive
+                    ? isLandingPage
+                      ? "bg-white/10 text-white"
+                      : "bg-blue-50 text-blue-600"
                     : isLandingPage
-                      ? "text-gray-700 hover:text-blue-600 hover:bg-white/50"
-                      : "text-gray-600 hover:text-blue-600 hover:bg-gray-100"
+                      ? "text-slate-300 hover:bg-white/10 hover:text-white"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                 }`}
               >
                 {link.label}
               </Link>
-            ))}
-          </nav>
+            );
+          })}
+        </nav>
 
-          <div className="hidden lg:flex items-center gap-3">
-            {isAuthenticated ? (
-              <>
-                <Link
-                  to={getDashboardLink()}
-                  className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-blue-600 font-medium transition-colors"
-                >
-                  <User className="w-4 h-4" />
-                  <span>Dashboard</span>
-                </Link>
-                <button
-                  onClick={logout}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Logout</span>
-                </button>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="flex items-center gap-2 px-4 py-2.5 text-gray-700 hover:text-blue-600 font-medium transition-colors"
-                >
-                  <LogIn className="w-4 h-4" />
-                  <span>Login</span>
-                </Link>
-                <Link
-                  to="/register"
-                  className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors shadow-md hover:shadow-lg"
-                >
-                  <UserPlus className="w-4 h-4" />
-                  <span>Register</span>
-                </Link>
-              </>
-            )}
-          </div>
-
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            {isMenuOpen ? (
-              <X className="w-6 h-6 text-gray-700" />
-            ) : (
-              <Menu className="w-6 h-6 text-gray-700" />
-            )}
-          </button>
+        <div className="hidden items-center gap-3 lg:flex">
+          {isAuthenticated ? (
+            <>
+              <Link
+                to={getDashboardLink()}
+                className={`flex items-center gap-2 rounded-full px-4 py-2 font-medium transition-colors ${
+                  isLandingPage ? "text-slate-300 hover:bg-white/10 hover:text-white" : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                }`}
+              >
+                <User className="h-4 w-4" />
+                <span>Dashboard</span>
+              </Link>
+              <button
+                onClick={logout}
+                className={`flex items-center gap-2 rounded-full px-4 py-2.5 font-medium transition-colors ${
+                  isLandingPage ? "bg-white/10 text-white hover:bg-white/20" : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                }`}
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className={`flex items-center gap-2 rounded-full px-4 py-2.5 font-medium transition-colors ${
+                  isLandingPage ? "text-slate-300 hover:bg-white/10 hover:text-white" : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                }`}
+              >
+                <LogIn className="h-4 w-4" />
+                <span>Login</span>
+              </Link>
+              <Link
+                to="/register"
+                className="flex items-center gap-2 rounded-full bg-blue-600 px-5 py-2.5 font-medium text-white shadow-md shadow-blue-950/20 transition-colors hover:bg-blue-700"
+              >
+                <UserPlus className="h-4 w-4" />
+                <span>Register</span>
+              </Link>
+            </>
+          )}
         </div>
+
+        <button
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className={`rounded-full p-2 transition-colors lg:hidden ${isLandingPage ? "hover:bg-white/10" : "hover:bg-slate-100"}`}
+          aria-label="Toggle navigation"
+        >
+          {isMenuOpen ? (
+            <X className={`h-6 w-6 ${isLandingPage ? "text-white" : "text-slate-700"}`} />
+          ) : (
+            <Menu className={`h-6 w-6 ${isLandingPage ? "text-white" : "text-slate-700"}`} />
+          )}
+        </button>
       </div>
 
       {isMenuOpen && (
-        <div className="lg:hidden bg-white border-t shadow-xl">
-          <nav className="px-4 py-4 space-y-1">
+        <div className={`border-t lg:hidden ${isLandingPage ? "border-white/10 bg-slate-950/95" : "border-slate-200 bg-white/95"}`}>
+          <nav className="mx-auto max-w-7xl space-y-1 px-4 py-4">
             {navLinks.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
                 onClick={() => setIsMenuOpen(false)}
-                className={`block px-4 py-3 rounded-lg font-medium transition-colors ${
+                className={`block rounded-2xl px-4 py-3 font-medium transition-colors ${
                   location.pathname === link.to
-                    ? "text-blue-600 bg-blue-50"
-                    : "text-gray-600 hover:text-blue-600 hover:bg-gray-50"
+                    ? isLandingPage
+                      ? "bg-white/10 text-white"
+                      : "bg-blue-50 text-blue-600"
+                    : isLandingPage
+                      ? "text-slate-300 hover:bg-white/10 hover:text-white"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                 }`}
               >
                 {link.label}
               </Link>
             ))}
-            <div className="pt-3 border-t space-y-2">
+            <div className={`space-y-2 border-t pt-3 ${isLandingPage ? "border-white/10" : "border-slate-200"}`}>
               {isAuthenticated ? (
                 <>
                   <Link
                     to={getDashboardLink()}
                     onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center gap-2 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 font-medium"
+                    className={`flex items-center gap-2 rounded-2xl px-4 py-3 font-medium ${isLandingPage ? "text-slate-200 hover:bg-white/10" : "text-slate-700 hover:bg-slate-100"}`}
                   >
-                    <User className="w-5 h-5" />
+                    <User className="h-5 w-5" />
                     <span>Dashboard</span>
                   </Link>
                   <button
@@ -157,9 +173,9 @@ export function Header() {
                       logout();
                       setIsMenuOpen(false);
                     }}
-                    className="w-full flex items-center gap-2 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 font-medium"
+                    className={`flex w-full items-center gap-2 rounded-2xl px-4 py-3 font-medium ${isLandingPage ? "text-red-300 hover:bg-white/10" : "text-red-600 hover:bg-red-50"}`}
                   >
-                    <LogOut className="w-5 h-5" />
+                    <LogOut className="h-5 w-5" />
                     <span>Logout</span>
                   </button>
                 </>
@@ -168,14 +184,14 @@ export function Header() {
                   <Link
                     to="/login"
                     onClick={() => setIsMenuOpen(false)}
-                    className="block px-4 py-3 rounded-lg text-center text-gray-700 hover:bg-gray-50 font-medium"
+                    className={`block rounded-2xl px-4 py-3 text-center font-medium ${isLandingPage ? "text-slate-200 hover:bg-white/10" : "text-slate-700 hover:bg-slate-100"}`}
                   >
                     Login
                   </Link>
                   <Link
                     to="/register"
                     onClick={() => setIsMenuOpen(false)}
-                    className="block px-4 py-3 rounded-lg text-center bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                    className="block rounded-2xl bg-blue-600 px-4 py-3 text-center font-medium text-white"
                   >
                     Register Now
                   </Link>

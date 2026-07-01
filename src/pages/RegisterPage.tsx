@@ -388,59 +388,56 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 py-8 px-4">
-      <div className="max-w-xl mx-auto">
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-3 mb-6">
-            <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <Vote className="w-7 h-7 text-white" />
-            </div>
-            <div className="text-left">
-              <span className="text-2xl font-bold text-gray-900">UEVS</span>
-              <p className="text-xs text-gray-500">Electronic Voting System</p>
-            </div>
-          </Link>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Student Registration</h1>
-          <p className="text-gray-600">Create your account to participate in university elections</p>
-        </div>
-
-        <div className="mb-8">
-          <div className="flex items-center justify-between max-w-sm mx-auto">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.2),_transparent_30%),linear-gradient(135deg,_#f8fbff_0%,_#eef5ff_45%,_#dbeafe_100%)] px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-6xl flex-col gap-8 lg:flex-row lg:items-start">
+        <div className="max-w-xl rounded-[2rem] bg-slate-950 p-8 text-white shadow-2xl shadow-slate-900/20 sm:p-10">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-blue-100 backdrop-blur">
+            <Vote className="h-4 w-4" />
+            Student identity verification
+          </div>
+          <h1 className="mt-6 text-3xl font-semibold sm:text-4xl">Create your UEVS account</h1>
+          <p className="mt-4 text-lg leading-8 text-slate-300">
+            Register with your verified student details, confirm your email, and prepare for secure voting.
+          </p>
+          <div className="mt-8 space-y-3 rounded-[1.5rem] border border-white/10 bg-white/10 p-5 backdrop-blur">
             {[
-              { num: 1, label: 'Academic Info' },
-              { num: 2, label: 'Account Setup' },
-              { num: 3, label: 'Verify Email' },
-            ].map((s, idx) => (
-              <div key={s.num} className="flex-1 flex flex-col items-center relative">
-                {idx < 2 && (
-                  <div
-                    className={`absolute top-4 left-1/2 w-full h-0.5 ${
-                      step > s.num ? 'bg-blue-600' : 'bg-gray-200'
-                    }`}
-                  />
-                )}
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold z-10 ${
-                    step >= s.num
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-500'
-                  }`}
-                >
-                  {step > s.num ? <CheckCircle2 className="w-5 h-5" /> : s.num}
-                </div>
-                <span className="text-xs mt-2 text-gray-600 hidden sm:block">{s.label}</span>
+              'Verified academic record matching',
+              'Protected email confirmation',
+              'Optional face enrollment for voting access',
+            ].map((item) => (
+              <div key={item} className="flex items-center gap-3 rounded-2xl bg-white/10 px-3 py-3 text-sm text-slate-200">
+                <CheckCircle2 className="h-4 w-4 text-blue-300" />
+                <span>{item}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100">
-          {errors.form && (
-            <div className="mb-5 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-              <p className="text-red-700 text-sm">{errors.form}</p>
+        <div className="flex-1">
+          <div className="mb-6 flex max-w-md justify-center rounded-full border border-slate-200/80 bg-white/80 p-2 shadow-sm backdrop-blur sm:mx-auto lg:mx-0">
+            <div className="flex w-full items-center justify-between gap-2">
+              {[
+                { num: 1, label: 'Academic Info' },
+                { num: 2, label: 'Account Setup' },
+                { num: 3, label: 'Verify Email' },
+              ].map((s, idx) => (
+                <div key={s.num} className="flex flex-1 flex-col items-center">
+                  <div className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold ${step >= s.num ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                    {step > s.num ? <CheckCircle2 className="h-5 w-5" /> : s.num}
+                  </div>
+                  <span className={`mt-2 hidden text-xs font-medium sm:block ${step >= s.num ? 'text-slate-900' : 'text-slate-500'}`}>{s.label}</span>
+                </div>
+              ))}
             </div>
-          )}
+          </div>
+
+          <div className="rounded-[2rem] border border-slate-200/80 bg-white p-6 shadow-2xl shadow-slate-900/10 sm:p-8">
+            {errors.form && (
+              <div className="mb-5 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4">
+                <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-500" />
+                <p className="text-sm text-red-700">{errors.form}</p>
+              </div>
+            )}
 
           {step === 1 && (
             <>
@@ -792,15 +789,18 @@ export function RegisterPage() {
           )}
         </div>
 
-        {step < 3 && (
-          <p className="mt-6 text-center text-gray-600">
-            Already have an account?{' '}
-            <Link to="/login" className="text-blue-600 hover:text-blue-700 font-semibold">
-              Sign In
-            </Link>
-          </p>
-        )}
+            {step < 3 && (
+              <p className="mt-6 text-center text-sm text-slate-600">
+                Already have an account?{' '}
+                <Link to="/login" className="font-semibold text-blue-600 transition-colors hover:text-blue-700">
+                  Sign In
+                </Link>
+              </p>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
+    
+    
   );
 }
