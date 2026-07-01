@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { LogOut } from "lucide-react";
+import { LogOut, Menu, X } from "lucide-react";
 import { SlotManagementPage } from "./SlotManagementPage";
 import { ElectionCreationPage } from "./ElectionCreationPage";
 import { CandidateApprovalPage } from "./CandidateApprovalPage";
+import { ApprovedCandidatesPage } from "./ApprovedCandidatesPage";
 import { ElectionMonitoringPage } from "./ElectionMonitoringPage";
 import { ElectionResultsPage } from "./ElectionResultsPage";
 import { ElectionReportsPage } from "./ElectionReportsPage";
 import { PaymentsPage } from "./PaymentsPage";
-import { StudentRecordsPage } from "./StudentRecordsPage";
 
 const sidebarItems = [
   { id: "dashboard", label: "Dashboard", icon: "fa-solid fa-house" },
@@ -40,11 +40,6 @@ const sidebarItems = [
   { id: "results", label: "Results", icon: "fa-solid fa-trophy" },
   { id: "reports", label: "Reports", icon: "fa-solid fa-file-lines" },
   { id: "payments", label: "Payments", icon: "fa-solid fa-credit-card" },
-  {
-    id: "students",
-    label: "Student Records",
-    icon: "fa-solid fa-graduation-cap",
-  },
 ];
 
 const summaryCards = [
@@ -76,25 +71,62 @@ const summaryCards = [
 
 export function ElectionOfficerDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
 
   const handleLogout = async () => {
     await logout();
   };
 
+  const toggleSidebar = () => setSidebarOpen((open) => !open);
+  const closeSidebar = () => setSidebarOpen(false);
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <aside className="fixed left-0 top-0 w-64 bg-blue-900 text-white p-6 shadow-lg h-screen">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold">UEVS</h1>
-          <p className="text-blue-200 text-sm">Election Officer</p>
+    <div className="min-h-screen bg-gray-50 md:flex">
+      <div className="md:hidden bg-white border-b border-gray-200 shadow-sm">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div>
+            <h1 className="text-lg font-bold text-gray-900">UEVS</h1>
+            <p className="text-sm text-gray-500">Election Officer</p>
+          </div>
+          <button
+            onClick={toggleSidebar}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-900 shadow-sm"
+          >
+            {sidebarOpen ? (
+              <X className="w-5 h-5" />
+            ) : (
+              <Menu className="w-5 h-5" />
+            )}
+          </button>
+        </div>
+      </div>
+
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/40 md:hidden"
+          onClick={closeSidebar}
+        />
+      )}
+
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-blue-900 text-white p-4 shadow-xl transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:top-0 md:bottom-0 md:translate-x-0 md:w-64 md:p-6 md:shadow-none md:flex md:flex-col`}
+      >
+        <div className="mb-6 flex items-center justify-between md:block">
+          <div>
+            <h1 className="text-2xl font-bold">UEVS</h1>
+            <p className="text-blue-200 text-sm">Election Officer</p>
+          </div>
         </div>
 
-        <nav className="space-y-2 mb-8 overflow-hidden">
+        <nav className="space-y-2 mb-6 overflow-y-auto pr-1 md:mb-8 md:flex-1 md:min-h-0 md:overflow-y-auto md:pr-0">
           {sidebarItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => {
+                setActiveTab(item.id);
+                closeSidebar();
+              }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all ${
                 activeTab === item.id
                   ? "bg-blue-600 text-white shadow-lg"
@@ -120,7 +152,7 @@ export function ElectionOfficerDashboard() {
         </div>
       </aside>
 
-      <main className="ml-64 p-8 h-screen overflow-auto">
+      <main className="flex-1 md:ml-64 p-4 md:p-8 min-h-screen">
         <div className="flex justify-between items-center mb-8">
           <div>
             <h2 className="text-3xl font-bold text-gray-900">
@@ -187,6 +219,8 @@ export function ElectionOfficerDashboard() {
           <SlotManagementPage />
         ) : activeTab === "pending-approvals" ? (
           <CandidateApprovalPage />
+        ) : activeTab === "approved" ? (
+          <ApprovedCandidatesPage />
         ) : activeTab === "monitoring" ? (
           <ElectionMonitoringPage />
         ) : activeTab === "results" ? (
@@ -195,8 +229,6 @@ export function ElectionOfficerDashboard() {
           <ElectionReportsPage />
         ) : activeTab === "payments" ? (
           <PaymentsPage />
-        ) : activeTab === "students" ? (
-          <StudentRecordsPage />
         ) : activeTab !== "dashboard" ? (
           <div className="bg-white rounded-xl shadow-md p-12 border border-gray-100 text-center">
             <i className="fa-solid fa-construction text-4xl text-gray-400 mb-4" />

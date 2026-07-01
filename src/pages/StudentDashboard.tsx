@@ -1,8 +1,70 @@
-import { Vote, Calendar, CheckCircle2, Clock, ArrowRight, Trophy, Bell, LogOut } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Vote, Calendar, CheckCircle2, ArrowRight, Trophy, Bell, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { getElectionPositions, getStudentElections } from '../services/election';
+import type { Election, ElectionPosition } from '../types';
 
 export function StudentDashboard() {
   const { user, logout } = useAuth();
+  const [elections, setElections] = useState<Election[]>([]);
+  const [selectedElectionId, setSelectedElectionId] = useState<string | null>(null);
+  const [positions, setPositions] = useState<ElectionPosition[]>([]);
+  const [loadingElections, setLoadingElections] = useState(false);
+  const [loadingPositions, setLoadingPositions] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const selectedElection = elections.find((election) => election.id === selectedElectionId);
+
+  useEffect(() => {
+    async function loadElections() {
+      setLoadingElections(true);
+      setError(null);
+
+      try {
+        const visibleElections = await getStudentElections();
+        setElections(visibleElections);
+        setSelectedElectionId((prev) => prev || visibleElections[0]?.id || null);
+      } catch (err) {
+        setError('Unable to load elections. Please refresh the page.');
+      } finally {
+        setLoadingElections(false);
+      }
+    }
+
+    loadElections();
+  }, []);
+
+  useEffect(() => {
+    async function loadPositions() {
+      if (!selectedElectionId) {
+        setPositions([]);
+        return;
+      }
+
+      setLoadingPositions(true);
+      setError(null);
+
+      try {
+        const electionPositions = await getElectionPositions(selectedElectionId);
+        setPositions(electionPositions);
+      } catch (err) {
+        setError('Unable to load slot positions for the selected election.');
+      } finally {
+        setLoadingPositions(false);
+      }
+    }
+
+    loadPositions();
+  }, [selectedElectionId]);
+
+  const getScopeLabel = (election: Election) => {
+    if (election.category === 'university') return 'General election';
+    if (election.category === 'faculty') return 'Faculty-level election';
+    return 'Department-level election';
+  };
+
+  const formatDate = (dateString?: string) =>
+    dateString ? new Date(dateString).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -84,49 +146,102 @@ export function StudentDashboard() {
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-8">
           <div className="p-6 border-b border-gray-100">
-            <h2 className="text-xl font-bold text-gray-900">Upcoming Elections</h2>
-          </div>
-          <div className="p-6">
-            <div className="grid gap-4">
-              {[
-                { title: 'SRC Elections 2024', date: 'Jan 15 - Jan 20, 2024', status: 'Active', type: 'SRC' },
-                { title: 'Faculty of Engineering Election', date: 'Jan 25, 2024', status: 'Upcoming', type: 'Faculty' },
-                { title: 'Computer Science Department Election', date: 'Feb 1, 2024', status: 'Upcoming', type: 'Department' },
-              ].map((election) => (
-                <div key={election.title} className="flex items-center justify-between p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                      election.type === 'SRC' ? 'bg-blue-100' : election.type === 'Faculty' ? 'bg-green-100' : 'bg-purple-100'
-                    }`}>
-                      <Vote className={`w-6 h-6 ${
-                        election.type === 'SRC' ? 'text-blue-600' : election.type === 'Faculty' ? 'text-green-600' : 'text-purple-600'
-                      }`} />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{election.title}</h3>
-                      <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
-                        <Clock className="w-4 h-4" />
-                        <span>{election.date}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className={`px-3 py-1.5 rounded-full text-sm font-medium ${
-                      election.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
-                    }`}>
-                      {election.status}
-                    </span>
-                    {election.status === 'Active' && (
-                      <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
-                        <span>Vote</span>
-                        <ArrowRight className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Available Elections</h2>
+                <p className="text-gray-600">Elections you are eligible to vote in.</p>
+              </div>
+              <div className="w-full sm:w-80">
+                <select
+                  value={selectedElectionId ?? ""}
+                  onChange={(event) => setSelectedElectionId(event.target.value)}
+                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                >
+                  <option value="">Select an election</option>
+                  {elections.map((election) => (
+                    <option key={election.id} value={election.id}>
+                      {election.title} • {election.category}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
+          <div className="p-6">
+            {error && (
+              <div className="rounded-2xl bg-red-50 p-4 text-sm text-red-700 mb-6">
+                {error}
+              </div>
+            )}
+            {loadingElections ? (
+              <p className="text-gray-600">Loading elections...</p>
+            ) : elections.length === 0 ? (
+              <p className="text-gray-600">No elections are available for your department or faculty yet.</p>
+            ) : (
+              <div className="grid gap-4">
+                {elections.map((election) => {
+                  const active = selectedElectionId === election.id;
+                  return (
+                    <button
+                      key={election.id}
+                      type="button"
+                      onClick={() => setSelectedElectionId(election.id)}
+                      className={`w-full rounded-2xl border p-4 text-left transition ${
+                        active ? 'border-blue-600 bg-blue-50 shadow-sm' : 'border-gray-200 bg-white hover:border-blue-300'
+                      }`}
+                    >
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                        <div>
+                          <p className="text-sm font-medium text-blue-700 uppercase tracking-[0.18em]">
+                            {getScopeLabel(election)}
+                          </p>
+                          <h3 className="text-lg font-semibold text-gray-900 mt-2">{election.title}</h3>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {formatDate(election.voting_start)} — {formatDate(election.voting_end)}
+                          </p>
+                        </div>
+                        <span className="inline-flex items-center justify-center rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700">
+                          {election.status.replace('_', ' ')}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-gray-900">Slots for {selectedElection?.title ?? 'Selected Election'}</h2>
+            <p className="text-gray-600">These are the available positions for the election you selected.</p>
+          </div>
+          {selectedElectionId ? (
+            loadingPositions ? (
+              <p className="text-gray-600">Loading slots...</p>
+            ) : positions.length === 0 ? (
+              <p className="text-gray-600">No slot positions are available for this election.</p>
+            ) : (
+              <div className="grid gap-4">
+                {positions.map((position) => (
+                  <div key={position.id} className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-lg font-semibold text-gray-900">{position.position_name}</p>
+                        <p className="text-sm text-gray-500">{position.description ?? 'No position description available.'}</p>
+                      </div>
+                      <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">
+                        {position.number_of_winners} winner{position.number_of_winners === 1 ? '' : 's'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          ) : (
+            <p className="text-gray-600">Select an election to view the available slots.</p>
+          )}
         </div>
 
         <div className="bg-blue-600 rounded-2xl p-6 sm:p-8">

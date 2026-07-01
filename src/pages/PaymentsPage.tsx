@@ -46,10 +46,11 @@ export function PaymentsPage() {
 
   useEffect(() => {
     if (!user?.id) return;
+    const userId = user.id;
     async function load() {
       setIsLoading(true);
       try {
-        const list = await getOfficerElections(user.id);
+        const list = await getOfficerElections(userId);
         setElections(list);
         if (list.length > 0) setSelectedElectionId(list[0].id);
       } catch (err) {

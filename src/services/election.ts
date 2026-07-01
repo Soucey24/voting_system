@@ -8,6 +8,9 @@ import type {
   ElectionVoter,
   ElectionVote,
   ElectionStats,
+  PaymentStatus,
+  Faculty,
+  Department,
 } from '../types';
 
 // Elections
@@ -29,7 +32,7 @@ export async function getFaculties() {
     .order('name');
 
   if (error) throw error;
-  return data as Array<{ id: string; name: string }>; 
+  return data as Faculty[];
 }
 
 export async function getDepartmentsByFacultyId(facultyId: string) {
@@ -40,7 +43,7 @@ export async function getDepartmentsByFacultyId(facultyId: string) {
     .order('name');
 
   if (error) throw error;
-  return data as Array<{ id: string; name: string }>; 
+  return data as Department[];
 }
 
 export async function getElectionById(electionId: string) {
@@ -107,6 +110,17 @@ export async function getElectionPositions(electionId: string) {
 
   if (error) throw error;
   return data as ElectionPosition[];
+}
+
+export async function getStudentElections() {
+  const { data, error } = await supabase
+    .from('elections')
+    .select('*')
+    .in('status', ['active', 'published'])
+    .order('voting_start', { ascending: true });
+
+  if (error) throw error;
+  return data as Election[];
 }
 
 interface ElectionCandidateVoteTotal extends ElectionCandidate {

@@ -9,6 +9,9 @@ import type { Election, ElectionCandidate } from "../types";
 
 interface ElectionCandidateWithVotes extends ElectionCandidate {
   vote_count: number;
+  user?: { full_name: string; email: string };
+  student?: { full_name: string };
+  position?: { position_name: string };
 }
 
 interface ElectionMonitorEntry {
@@ -218,13 +221,14 @@ export function ElectionMonitoringPage() {
 
   useEffect(() => {
     if (!user?.id) return;
+    const userId = user.id;
 
     async function loadMonitoringData() {
       setIsLoading(true);
       setError("");
 
       try {
-        const elections = await getActiveElections(user.id);
+        const elections = await getActiveElections(userId);
         if (elections.length === 0) {
           setMonitorData(mockMonitorData);
           return;
@@ -387,7 +391,7 @@ export function ElectionMonitoringPage() {
                               </h3>
                               <p className="text-xs text-slate-500">
                                 {candidate.user?.email ??
-                                  candidate.student?.student_id}
+                                  candidate.student?.full_name}
                               </p>
                             </div>
                           </div>

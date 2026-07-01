@@ -63,12 +63,13 @@ export function CandidateApprovalPage() {
 
   useEffect(() => {
     if (!user?.id) return;
+    const userId = user.id;
 
     async function loadElections() {
       setLoading(true);
       setActionError("");
       try {
-        const officerElections = await getOfficerElections(user.id);
+        const officerElections = await getOfficerElections(userId);
         setElections(officerElections || []);
         const firstElectionId = officerElections
           .filter(isElectionVisibleToUser)
