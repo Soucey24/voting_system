@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { LogOut, Menu, X } from "lucide-react";
 import { SlotManagementPage } from "./SlotManagementPage";
@@ -9,6 +10,11 @@ import { ElectionMonitoringPage } from "./ElectionMonitoringPage";
 import { ElectionResultsPage } from "./ElectionResultsPage";
 import { ElectionReportsPage } from "./ElectionReportsPage";
 import { PaymentsPage } from "./PaymentsPage";
+import {
+  getActiveElections,
+  getElectionStats,
+  getPendingCandidates,
+} from "../services/election";
 
 const sidebarItems = [
   { id: "dashboard", label: "Dashboard", icon: "fa-solid fa-house" },
@@ -42,37 +48,80 @@ const sidebarItems = [
   { id: "payments", label: "Payments", icon: "fa-solid fa-credit-card" },
 ];
 
-const summaryCards = [
-  {
-    title: "Active Elections",
-    value: "1",
-    icon: "fa-solid fa-calendar-days",
-    iconBg: "bg-blue-100 text-blue-600",
-  },
-  {
-    title: "Pending Applications",
-    value: "24",
-    icon: "fa-solid fa-hourglass-half",
-    iconBg: "bg-orange-100 text-orange-600",
-  },
-  {
-    title: "Approved Candidates",
-    value: "56",
-    icon: "fa-solid fa-user-check",
-    iconBg: "bg-emerald-100 text-emerald-600",
-  },
-  {
-    title: "Votes Cast",
-    value: "1,243",
-    icon: "fa-solid fa-chart-simple",
-    iconBg: "bg-violet-100 text-violet-600",
-  },
-];
-
 export function ElectionOfficerDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
+  const [dashboardError, setDashboardError] = useState("");
+  const [dashboardStats, setDashboardStats] = useState({
+    activeElections: 0,
+    pendingApplications: 0,
+    approvedCandidates: 0,
+    votesCast: 0,
+  });
+  const [latestElectionName, setLatestElectionName] = useState<string>("No active election");
+  const [latestElectionStatus, setLatestElectionStatus] = useState<string>("N/A");
+  const [latestEligibleVoters, setLatestEligibleVoters] = useState<number>(0);
   const { user, logout } = useAuth();
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    async function loadDashboardData() {
+      setDashboardLoading(true);
+      setDashboardError("");
+
+      try {
+        const active = await getActiveElections(user.id);
+        const electionIds = active.map((election) => election.id);
+
+        const pendingCounts = await Promise.all(
+          electionIds.map(async (electionId) => {
+            const pending = await getPendingCandidates(electionId);
+            return pending?.length ?? 0;
+          }),
+        );
+
+        const statsList = await Promise.all(
+          electionIds.map(async (electionId) => getElectionStats(electionId)),
+        );
+
+        const totals = statsList.reduce(
+          (acc, stats) => {
+            acc.approvedCandidates += stats.candidatesApproved;
+            acc.votesCast += stats.totalVotesCast;
+            return acc;
+          },
+          { approvedCandidates: 0, votesCast: 0 },
+        );
+
+        setDashboardStats({
+          activeElections: active.length,
+          pendingApplications: pendingCounts.reduce((sum, count) => sum + count, 0),
+          approvedCandidates: totals.approvedCandidates,
+          votesCast: totals.votesCast,
+        });
+
+        const latestElection = active[0];
+        if (latestElection) {
+          setLatestElectionName(latestElection.title);
+          setLatestElectionStatus(latestElection.status.toUpperCase());
+          setLatestEligibleVoters(latestElection.total_voters ?? 0);
+        } else {
+          setLatestElectionName("No active election");
+          setLatestElectionStatus("N/A");
+          setLatestEligibleVoters(0);
+        }
+      } catch (error) {
+        console.error(error);
+        setDashboardError("Unable to load dashboard metrics from backend.");
+      } finally {
+        setDashboardLoading(false);
+      }
+    }
+
+    loadDashboardData();
+  }, [user?.id]);
 
   const handleLogout = async () => {
     await logout();
@@ -166,8 +215,39 @@ export function ElectionOfficerDashboard() {
 
         {activeTab === "dashboard" && (
           <div className="space-y-8">
+            {dashboardError ? (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {dashboardError}
+              </div>
+            ) : null}
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {summaryCards.map((card, idx) => (
+              {[
+                {
+                  title: "Active Elections",
+                  value: dashboardLoading ? "..." : String(dashboardStats.activeElections),
+                  icon: "fa-solid fa-calendar-days",
+                  iconBg: "bg-blue-100 text-blue-600",
+                },
+                {
+                  title: "Pending Applications",
+                  value: dashboardLoading ? "..." : String(dashboardStats.pendingApplications),
+                  icon: "fa-solid fa-hourglass-half",
+                  iconBg: "bg-orange-100 text-orange-600",
+                },
+                {
+                  title: "Approved Candidates",
+                  value: dashboardLoading ? "..." : String(dashboardStats.approvedCandidates),
+                  icon: "fa-solid fa-user-check",
+                  iconBg: "bg-emerald-100 text-emerald-600",
+                },
+                {
+                  title: "Votes Cast",
+                  value: dashboardLoading ? "..." : dashboardStats.votesCast.toLocaleString(),
+                  icon: "fa-solid fa-chart-simple",
+                  iconBg: "bg-violet-100 text-violet-600",
+                },
+              ].map((card, idx) => (
                 <div
                   key={idx}
                   className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow"
@@ -197,16 +277,16 @@ export function ElectionOfficerDashboard() {
                 <div className="p-4 bg-gray-50 rounded-lg">
                   <p className="text-gray-600 text-sm">Election Name</p>
                   <p className="text-gray-900 font-semibold">
-                    SRC General Election 2025
+                    {dashboardLoading ? "Loading..." : latestElectionName}
                   </p>
                 </div>
                 <div className="p-4 bg-gray-50 rounded-lg">
                   <p className="text-gray-600 text-sm">Status</p>
-                  <p className="text-green-600 font-semibold">LIVE</p>
+                  <p className="text-green-600 font-semibold">{dashboardLoading ? "..." : latestElectionStatus}</p>
                 </div>
                 <div className="p-4 bg-gray-50 rounded-lg">
                   <p className="text-gray-600 text-sm">Eligible Voters</p>
-                  <p className="text-gray-900 font-semibold">5,000</p>
+                  <p className="text-gray-900 font-semibold">{dashboardLoading ? "..." : latestEligibleVoters.toLocaleString()}</p>
                 </div>
               </div>
             </div>
