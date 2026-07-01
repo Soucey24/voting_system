@@ -104,6 +104,12 @@ export interface ElectionPosition {
   description?: string;
   number_of_winners: number;
   display_order?: number;
+  application_opening?: string;
+  application_closing?: string;
+  application_fee?: number;
+  max_applicants?: number;
+  is_enabled?: boolean;
+  status?: 'draft' | 'published' | 'closed';
   created_at: string;
   updated_at: string;
 }

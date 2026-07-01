@@ -1,36 +1,44 @@
-import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Vote, LogIn, UserPlus, User, LogOut } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Menu, X, Vote, LogIn, UserPlus, User, LogOut } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isAuthenticated, user, logout } = useAuth();
   const location = useLocation();
-  const isLandingPage = location.pathname === '/';
+  const isLandingPage = location.pathname === "/";
 
   const navLinks = [
-    { to: '/', label: 'Home' },
-    { to: '/about', label: 'About' },
-    { to: '/how-it-works', label: 'How It Works' },
-    { to: '/faq', label: 'FAQ' },
-    { to: '/contact', label: 'Contact' },
+    { to: "/", label: "Home" },
+    { to: "/about", label: "About" },
+    { to: "/how-it-works", label: "How It Works" },
+    { to: "/faq", label: "FAQ" },
+    { to: "/contact", label: "Contact" },
   ];
 
   const getDashboardLink = () => {
-    if (!user) return '/login';
+    if (!user) return "/login";
     switch (user.role) {
-      case 'admin': return '/admin/dashboard';
-      case 'election_officer': return '/officer/dashboard';
-      case 'auditor': return '/auditor/dashboard';
-      default: return '/student/dashboard';
+      case "admin":
+        return "/admin/dashboard";
+      case "election_officer":
+        return "/election-officer/dashboard";
+      case "auditor":
+        return "/auditor/dashboard";
+      case "student":
+        return "/student/dashboard";
+      default:
+        return "/";
     }
   };
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-      isLandingPage ? 'bg-transparent' : 'bg-white shadow-md'
-    }`}>
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isLandingPage ? "bg-transparent" : "bg-white shadow-md"
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 sm:h-20">
           <Link to="/" className="flex items-center gap-2 sm:gap-3">
@@ -38,8 +46,12 @@ export function Header() {
               <Vote className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
             <div className="hidden sm:block">
-              <span className="text-lg sm:text-xl font-bold text-gray-900">UEVS</span>
-              <p className="text-xs text-gray-500 -mt-1">Electronic Voting System</p>
+              <span className="text-lg sm:text-xl font-bold text-gray-900">
+                UEVS
+              </span>
+              <p className="text-xs text-gray-500 -mt-1">
+                Electronic Voting System
+              </p>
             </div>
           </Link>
 
@@ -50,10 +62,10 @@ export function Header() {
                 to={link.to}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   location.pathname === link.to
-                    ? 'text-blue-600 bg-blue-50'
+                    ? "text-blue-600 bg-blue-50"
                     : isLandingPage
-                    ? 'text-gray-700 hover:text-blue-600 hover:bg-white/50'
-                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-100'
+                      ? "text-gray-700 hover:text-blue-600 hover:bg-white/50"
+                      : "text-gray-600 hover:text-blue-600 hover:bg-gray-100"
                 }`}
               >
                 {link.label}
@@ -122,8 +134,8 @@ export function Header() {
                 onClick={() => setIsMenuOpen(false)}
                 className={`block px-4 py-3 rounded-lg font-medium transition-colors ${
                   location.pathname === link.to
-                    ? 'text-blue-600 bg-blue-50'
-                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+                    ? "text-blue-600 bg-blue-50"
+                    : "text-gray-600 hover:text-blue-600 hover:bg-gray-50"
                 }`}
               >
                 {link.label}

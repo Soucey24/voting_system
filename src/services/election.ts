@@ -21,6 +21,27 @@ export async function getOfficerElections(officerId: string) {
   return data as Election[];
 }
 
+export async function getFaculties() {
+  const { data, error } = await supabase
+    .from('faculties')
+    .select('*')
+    .order('name');
+
+  if (error) throw error;
+  return data as Array<{ id: string; name: string }>; 
+}
+
+export async function getDepartmentsByFacultyId(facultyId: string) {
+  const { data, error } = await supabase
+    .from('departments')
+    .select('*')
+    .eq('faculty_id', facultyId)
+    .order('name');
+
+  if (error) throw error;
+  return data as Array<{ id: string; name: string }>; 
+}
+
 export async function getElectionById(electionId: string) {
   const { data, error } = await supabase
     .from('elections')
@@ -87,6 +108,42 @@ export async function getElectionPositions(electionId: string) {
   return data as ElectionPosition[];
 }
 
+interface ElectionCandidateVoteTotal extends ElectionCandidate {
+  vote_count: number;
+}
+
+export async function getElectionCandidateVoteTotals(electionId: string) {
+  const { data, error } = await supabase
+    .from('election_candidates')
+    .select(`
+      *,
+      user:users(id, full_name, email),
+      position:election_positions(id, position_name)
+    `)
+    .eq('election_id', electionId)
+    .eq('application_status', 'approved');
+
+  if (error) throw error;
+
+  const candidates = (data ?? []) as ElectionCandidate[];
+  const voteCounts = await Promise.all(
+    candidates.map(async (candidate) => {
+      const { count, error: countError } = await supabase
+        .from('election_votes')
+        .select('id', { count: 'exact', head: true })
+        .eq('candidate_id', candidate.id)
+        .eq('election_id', electionId);
+      if (countError) throw countError;
+      return {
+        ...candidate,
+        vote_count: count ?? 0,
+      };
+    }),
+  );
+
+  return voteCounts as ElectionCandidateVoteTotal[];
+}
+
 export async function createPosition(position: Omit<ElectionPosition, 'id' | 'created_at' | 'updated_at'>) {
   const { data, error } = await supabase
     .from('election_positions')
@@ -108,6 +165,18 @@ export async function updatePosition(positionId: string, updates: Partial<Electi
 
   if (error) throw error;
   return data as ElectionPosition;
+}
+
+export async function getPositionCandidateStats(positionIds: string[]) {
+  if (positionIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from('election_candidates')
+    .select('position_id, payment_status')
+    .in('position_id', positionIds);
+
+  if (error) throw error;
+  return data as { position_id: string; payment_status: PaymentStatus }[];
 }
 
 export async function deletePosition(positionId: string) {
@@ -357,6 +426,102 @@ export async function getElectionResults(electionId: string) {
 
 export async function publishResults(electionId: string) {
   return updateElection(electionId, { status: 'results_published' });
+}
+
+export interface TallyCandidateResult {
+  id: string;
+  name: string;
+  profile_image_url?: string;
+  votes: number;
+  percentage: number;
+  isWinner: boolean;
+}
+
+export interface TallyPositionResult {
+  positionId: string;
+  position: string;
+  candidates: TallyCandidateResult[];
+}
+
+// Aggregate raw votes by position and candidate. Returns a tally suitable for
+// display on the Results Publishing page (and for CSV export).
+export async function tallyElectionResults(electionId: string): Promise<TallyPositionResult[]> {
+  const { data, error } = await supabase
+    .from('election_votes')
+    .select(`
+      position_id,
+      candidate_id,
+      candidate:election_candidates(
+        id,
+        profile_image_url,
+        user:users(full_name),
+        position:election_positions(id, position_name)
+      )
+    `)
+    .eq('election_id', electionId);
+
+  if (error) throw error;
+
+  type VoteRow = {
+    position_id: string;
+    candidate_id: string;
+    candidate: {
+      id: string;
+      user: { full_name: string } | null;
+      position: { id: string; position_name: string } | null;
+    } | null;
+  };
+
+  const rows = (data ?? []) as unknown as VoteRow[];
+
+  // Group by position
+  const byPosition = new Map<
+    string,
+    { name: string; candidates: Map<string, { id: string; name: string; votes: number }> }
+  >();
+
+  for (const row of rows) {
+    const positionId = row.position_id;
+    const positionName = row.candidate?.position?.position_name ?? 'Unknown Position';
+    const candidateId = row.candidate_id;
+    const candidateName = row.candidate?.user?.full_name ?? 'Unknown Candidate';
+
+    if (!byPosition.has(positionId)) {
+      byPosition.set(positionId, { name: positionName, candidates: new Map() });
+    }
+    const bucket = byPosition.get(positionId)!;
+    const existing = bucket.candidates.get(candidateId);
+    if (existing) {
+      existing.votes += 1;
+    } else {
+      bucket.candidates.set(candidateId, {
+        id: candidateId,
+        name: candidateName,
+        votes: 1,
+      });
+    }
+  }
+
+  const tally: TallyPositionResult[] = [];
+  byPosition.forEach((bucket, positionId) => {
+    const total = Array.from(bucket.candidates.values()).reduce((s, c) => s + c.votes, 0);
+    const sorted = Array.from(bucket.candidates.values()).sort((a, b) => b.votes - a.votes);
+    const topVotes = sorted[0]?.votes ?? 0;
+    tally.push({
+      positionId,
+      position: bucket.name,
+      candidates: sorted.map((c) => ({
+        id: c.id,
+        name: c.name,
+        votes: c.votes,
+        percentage: total > 0 ? Math.round((c.votes / total) * 100) : 0,
+        isWinner: c.votes > 0 && c.votes === topVotes,
+      })),
+    });
+  });
+
+  tally.sort((a, b) => a.position.localeCompare(b.position));
+  return tally;
 }
 
 // Statistics
