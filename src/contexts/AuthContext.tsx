@@ -1,9 +1,22 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase } from '../services/supabase';
-import type { User, AuthState } from '../types';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { supabase } from "../services/supabase";
+import type { User, AuthState, UserRole } from "../types";
 
 interface AuthContextType extends AuthState {
-  login: (email: string, password: string) => Promise<{ error?: string; requiresFaceEnrollment?: boolean }>;
+  login: (
+    email: string,
+    password: string,
+  ) => Promise<{
+    error?: string;
+    requiresFaceEnrollment?: boolean;
+    role?: UserRole;
+  }>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   updateUserFaceEnrollment: () => void;
@@ -21,10 +34,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
-      if (event === 'SIGNED_OUT') {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event) => {
+      if (event === "SIGNED_OUT") {
         setState({ user: null, isLoading: false, isAuthenticated: false });
-      } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+      } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
         await fetchUserData();
       }
     });
@@ -34,7 +49,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function checkSession() {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (session?.user) {
         await fetchUserData();
       } else {
@@ -47,16 +64,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function fetchUserData() {
     try {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
       if (!authUser) {
         setState({ user: null, isLoading: false, isAuthenticated: false });
         return;
       }
 
       const { data: userData, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', authUser.id)
+        .from("users")
+        .select("*")
+        .eq("id", authUser.id)
         .single();
 
       if (error || !userData) {
@@ -82,20 +101,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function login(email: string, password: string) {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       if (error) return { error: error.message };
 
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser) return { error: 'Authentication failed' };
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+      if (!authUser) return { error: "Authentication failed" };
 
       const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', authUser.id)
+        .from("users")
+        .select("*")
+        .eq("id", authUser.id)
         .single();
 
       if (userError || !userData) {
-        return { error: 'User profile not found' };
+        return { error: "User profile not found" };
       }
 
       if (!userData.is_email_verified) {
@@ -104,9 +128,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       await supabase
-        .from('users')
+        .from("users")
         .update({ last_login: new Date().toISOString() })
-        .eq('id', authUser.id);
+        .eq("id", authUser.id);
 
       setState({
         user: userData as User,
@@ -115,13 +139,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       const user = userData as User;
-      if (user.role === 'student' && !user.is_face_enrolled) {
-        return { requiresFaceEnrollment: true };
+      if (user.role === "student" && !user.is_face_enrolled) {
+        return { requiresFaceEnrollment: true, role: user.role };
       }
 
-      return {};
+      return { role: user.role };
     } catch (err) {
-      return { error: 'An unexpected error occurred' };
+      return { error: "An unexpected error occurred" };
     }
   }
 
@@ -161,7 +185,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

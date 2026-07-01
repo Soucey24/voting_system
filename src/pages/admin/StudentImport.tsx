@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from "react";
 import {
   Upload,
   FileSpreadsheet,
@@ -9,8 +9,8 @@ import {
   FileText,
   Users,
   Trash2,
-} from 'lucide-react';
-import { supabase } from '../../services/supabase';
+} from "lucide-react";
+import { supabase } from "../../services/supabase";
 
 interface ImportedStudent {
   student_id: string;
@@ -19,6 +19,7 @@ interface ImportedStudent {
   faculty: string;
   department: string;
   status: string;
+  image_url?: string;
 }
 
 interface ImportResult {
@@ -48,7 +49,7 @@ export function StudentImport({ onImport }: StudentImportProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [preview, setPreview] = useState<ImportedStudent[]>([]);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [studentRecords, setStudentRecords] = useState<StudentRecord[]>([]);
   const [isLoadingRecords, setIsLoadingRecords] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -60,8 +61,9 @@ export function StudentImport({ onImport }: StudentImportProps) {
   async function loadStudentRecords() {
     setIsLoadingRecords(true);
     const { data } = await supabase
-      .from('student_records')
-      .select(`
+      .from("student_records")
+      .select(
+        `
         id,
         student_id,
         full_name,
@@ -71,8 +73,9 @@ export function StudentImport({ onImport }: StudentImportProps) {
         status,
         faculties(name),
         departments(name)
-      `)
-      .order('created_at', { ascending: false });
+      `,
+      )
+      .order("created_at", { ascending: false });
     if (data) {
       setStudentRecords(data as StudentRecord[]);
     }
@@ -83,35 +86,43 @@ export function StudentImport({ onImport }: StudentImportProps) {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
 
-    if (!selectedFile.name.endsWith('.csv') && !selectedFile.name.endsWith('.xlsx') && !selectedFile.name.endsWith('.xls')) {
-      setError('Please upload a CSV or Excel file');
+    if (
+      !selectedFile.name.endsWith(".csv") &&
+      !selectedFile.name.endsWith(".xlsx") &&
+      !selectedFile.name.endsWith(".xls")
+    ) {
+      setError("Please upload a CSV or Excel file");
       return;
     }
 
     setFile(selectedFile);
     setImportResult(null);
-    setError('');
+    setError("");
 
-    if (selectedFile.name.endsWith('.csv')) {
+    if (selectedFile.name.endsWith(".csv")) {
       parseCSV(selectedFile);
     }
   }
 
   async function parseCSV(file: File) {
     const text = await file.text();
-    const lines = text.trim().split('\n');
-    const headers = lines[0].split(',').map((h) => h.trim().toLowerCase());
+    const lines = text.trim().split("\n");
+    const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
 
     const students: ImportedStudent[] = [];
     for (let i = 1; i < lines.length && i < 11; i++) {
-      const values = lines[i].split(',');
+      const values = lines[i].split(",");
       students.push({
-        student_id: values[headers.indexOf('student_id')]?.trim() || '',
-        full_name: values[headers.indexOf('full_name')]?.trim() || '',
-        email: values[headers.indexOf('email')]?.trim() || '',
-        faculty: values[headers.indexOf('faculty')]?.trim() || '',
-        department: values[headers.indexOf('department')]?.trim() || '',
-        status: values[headers.indexOf('status')]?.trim() || 'active',
+        student_id: values[headers.indexOf("student_id")]?.trim() || "",
+        full_name: values[headers.indexOf("full_name")]?.trim() || "",
+        email: values[headers.indexOf("email")]?.trim() || "",
+        faculty: values[headers.indexOf("faculty")]?.trim() || "",
+        department: values[headers.indexOf("department")]?.trim() || "",
+        status: values[headers.indexOf("status")]?.trim() || "active",
+        image_url:
+          values[headers.indexOf("image_url")]?.trim() ||
+          values[headers.indexOf("profile_image_url")]?.trim() ||
+          "",
       });
     }
     setPreview(students);
@@ -121,31 +132,41 @@ export function StudentImport({ onImport }: StudentImportProps) {
     if (!file) return;
 
     setIsUploading(true);
-    setError('');
+    setError("");
     setImportResult(null);
 
     try {
       const text = await file.text();
-      const lines = text.trim().split('\n');
-      const headers = lines[0].split(',').map((h) => h.trim().toLowerCase());
+      const lines = text.trim().split("\n");
+      const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
 
       const students: ImportedStudent[] = [];
       for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',');
+        const values = lines[i].split(",");
         if (values.length < 3) continue;
 
         students.push({
-          student_id: values[headers.indexOf('student_id')]?.trim() || '',
-          full_name: values[headers.indexOf('full_name')]?.trim() || '',
-          email: values[headers.indexOf('email')]?.trim() || '',
-          faculty: values[headers.indexOf('faculty')]?.trim() || values[headers.indexOf('faculty_code')]?.trim() || '',
-          department: values[headers.indexOf('department')]?.trim() || values[headers.indexOf('department_code')]?.trim() || '',
-          status: values[headers.indexOf('status')]?.trim() || 'active',
+          student_id: values[headers.indexOf("student_id")]?.trim() || "",
+          full_name: values[headers.indexOf("full_name")]?.trim() || "",
+          email: values[headers.indexOf("email")]?.trim() || "",
+          faculty:
+            values[headers.indexOf("faculty")]?.trim() ||
+            values[headers.indexOf("faculty_code")]?.trim() ||
+            "",
+          department:
+            values[headers.indexOf("department")]?.trim() ||
+            values[headers.indexOf("department_code")]?.trim() ||
+            "",
+          status: values[headers.indexOf("status")]?.trim() || "active",
         });
       }
 
-      const { data: faculties } = await supabase.from('faculties').select('id, name, code');
-      const { data: departments } = await supabase.from('departments').select('id, name, code, faculty_id');
+      const { data: faculties } = await supabase
+        .from("faculties")
+        .select("id, name, code");
+      const { data: departments } = await supabase
+        .from("departments")
+        .select("id, name, code, faculty_id");
 
       // Map by both name and code
       const facultyMap = new Map<string, string>();
@@ -175,8 +196,10 @@ export function StudentImport({ onImport }: StudentImportProps) {
         let facultyId = facultyMap.get(student.faculty.toLowerCase().trim());
         if (!facultyId) {
           const faculty = faculties?.find(
-            (f) => f.name.toLowerCase().trim() === student.faculty.toLowerCase().trim() ||
-                   f.code.toLowerCase() === student.faculty.toLowerCase()
+            (f) =>
+              f.name.toLowerCase().trim() ===
+                student.faculty.toLowerCase().trim() ||
+              f.code.toLowerCase() === student.faculty.toLowerCase(),
           );
           facultyId = faculty?.id || null;
         }
@@ -184,28 +207,35 @@ export function StudentImport({ onImport }: StudentImportProps) {
         let departmentId = null;
         if (facultyId && student.department) {
           // Try by name first, then by code
-          departmentId = deptMap.get(`${student.department.toLowerCase().trim()}_${facultyId}`);
+          departmentId = deptMap.get(
+            `${student.department.toLowerCase().trim()}_${facultyId}`,
+          );
           if (!departmentId) {
             const dept = departments?.find(
-              (d) => d.faculty_id === facultyId &&
-                    (d.name.toLowerCase().trim() === student.department.toLowerCase().trim() ||
-                     d.code.toLowerCase() === student.department.toLowerCase())
+              (d) =>
+                d.faculty_id === facultyId &&
+                (d.name.toLowerCase().trim() ===
+                  student.department.toLowerCase().trim() ||
+                  d.code.toLowerCase() === student.department.toLowerCase()),
             );
             departmentId = dept?.id || null;
           }
         }
 
-        const { error: insertError } = await supabase.from('student_records').upsert(
-          {
-            student_id: student.student_id,
-            full_name: student.full_name,
-            email: student.email,
-            faculty_id: facultyId,
-            department_id: departmentId,
-            status: student.status || 'active',
-          },
-          { onConflict: 'student_id' }
-        );
+        const { error: insertError } = await supabase
+          .from("student_records")
+          .upsert(
+            {
+              student_id: student.student_id,
+              full_name: student.full_name,
+              email: student.email,
+              faculty_id: facultyId,
+              department_id: departmentId,
+              status: student.status || "active",
+              profile_image_url: student.image_url || null,
+            },
+            { onConflict: "student_id" },
+          );
 
         if (insertError) {
           failedCount++;
@@ -219,7 +249,7 @@ export function StudentImport({ onImport }: StudentImportProps) {
       onImport();
       loadStudentRecords();
     } catch {
-      setError('Failed to process file');
+      setError("Failed to process file");
     } finally {
       setIsUploading(false);
     }
@@ -229,19 +259,20 @@ export function StudentImport({ onImport }: StudentImportProps) {
     setFile(null);
     setPreview([]);
     setImportResult(null);
-    setError('');
+    setError("");
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   }
 
   function downloadTemplate() {
-    const template = 'student_id,full_name,email,faculty_code,department_code,status\n03212345,John Doe,03212345@university.edu,FAST,CS,active\n03212346,Jane Smith,03212346@university.edu,FOE,ENG,active';
-    const blob = new Blob([template], { type: 'text/csv' });
+    const template =
+      "student_id,full_name,email,faculty_code,department_code,image_url,status\n03212345,John Doe,03212345@university.edu,FAST,CS,https://example.com/photos/john-doe.jpg,active\n03212346,Jane Smith,03212346@university.edu,FOE,ENG,https://example.com/photos/jane-smith.jpg,active";
+    const blob = new Blob([template], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = 'student_import_template.csv';
+    a.download = "student_import_template.csv";
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -251,7 +282,9 @@ export function StudentImport({ onImport }: StudentImportProps) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Student Import</h2>
-          <p className="text-gray-600">Import official student records for verification</p>
+          <p className="text-gray-600">
+            Import official student records for verification
+          </p>
         </div>
         <button
           onClick={downloadTemplate}
@@ -269,15 +302,30 @@ export function StudentImport({ onImport }: StudentImportProps) {
           </div>
           <div>
             <h3 className="font-semibold text-gray-900">File Format</h3>
-            <p className="text-sm text-gray-500">CSV or Excel file with student records</p>
+            <p className="text-sm text-gray-500">
+              CSV or Excel file with student records
+            </p>
           </div>
         </div>
 
         <div className="bg-gray-50 rounded-xl p-4 mb-4">
-          <p className="text-sm text-gray-600 mb-2 font-medium">Required columns:</p>
+          <p className="text-sm text-gray-600 mb-2 font-medium">
+            Required columns:
+          </p>
           <div className="flex flex-wrap gap-2">
-            {['student_id', 'full_name', 'email', 'faculty_code', 'department_code', 'status (optional)'].map((col) => (
-              <span key={col} className="px-3 py-1 bg-white rounded-lg text-xs font-medium text-gray-700 border">
+            {[
+              "student_id",
+              "full_name",
+              "email",
+              "faculty_code",
+              "department_code",
+              "image_url",
+              "status (optional)",
+            ].map((col) => (
+              <span
+                key={col}
+                className="px-3 py-1 bg-white rounded-lg text-xs font-medium text-gray-700 border"
+              >
                 {col}
               </span>
             ))}
@@ -286,7 +334,9 @@ export function StudentImport({ onImport }: StudentImportProps) {
 
         <div
           className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
-            file ? 'border-green-300 bg-green-50' : 'border-gray-300 hover:border-blue-400'
+            file
+              ? "border-green-300 bg-green-50"
+              : "border-gray-300 hover:border-blue-400"
           }`}
         >
           <input
@@ -303,7 +353,9 @@ export function StudentImport({ onImport }: StudentImportProps) {
               <FileText className="w-10 h-10 text-green-600" />
               <div className="text-left">
                 <p className="font-medium text-gray-900">{file.name}</p>
-                <p className="text-sm text-gray-500">{(file.size / 1024).toFixed(1)} KB</p>
+                <p className="text-sm text-gray-500">
+                  {(file.size / 1024).toFixed(1)} KB
+                </p>
               </div>
               <button
                 onClick={clearFile}
@@ -315,8 +367,12 @@ export function StudentImport({ onImport }: StudentImportProps) {
           ) : (
             <label htmlFor="file-upload" className="cursor-pointer">
               <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 font-medium">Click to upload or drag and drop</p>
-              <p className="text-sm text-gray-400 mt-1">CSV or Excel (max 10MB)</p>
+              <p className="text-gray-600 font-medium">
+                Click to upload or drag and drop
+              </p>
+              <p className="text-sm text-gray-400 mt-1">
+                CSV or Excel (max 10MB)
+              </p>
             </label>
           )}
         </div>
@@ -351,19 +407,25 @@ export function StudentImport({ onImport }: StudentImportProps) {
 
       {importResult && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">Import Results</h3>
+          <h3 className="text-lg font-bold text-gray-900 mb-4">
+            Import Results
+          </h3>
           <div className="grid sm:grid-cols-2 gap-4 mb-4">
             <div className="p-4 bg-green-50 rounded-xl flex items-center gap-3">
               <CheckCircle2 className="w-8 h-8 text-green-600" />
               <div>
-                <p className="text-2xl font-bold text-green-700">{importResult.success}</p>
+                <p className="text-2xl font-bold text-green-700">
+                  {importResult.success}
+                </p>
                 <p className="text-sm text-green-600">Successfully imported</p>
               </div>
             </div>
             <div className="p-4 bg-red-50 rounded-xl flex items-center gap-3">
               <AlertCircle className="w-8 h-8 text-red-600" />
               <div>
-                <p className="text-2xl font-bold text-red-700">{importResult.failed}</p>
+                <p className="text-2xl font-bold text-red-700">
+                  {importResult.failed}
+                </p>
                 <p className="text-sm text-red-600">Failed to import</p>
               </div>
             </div>
@@ -377,7 +439,9 @@ export function StudentImport({ onImport }: StudentImportProps) {
                   <li key={idx}>{err}</li>
                 ))}
                 {importResult.errors.length > 5 && (
-                  <li className="text-gray-400">...and {importResult.errors.length - 5} more errors</li>
+                  <li className="text-gray-400">
+                    ...and {importResult.errors.length - 5} more errors
+                  </li>
                 )}
               </ul>
             </div>
@@ -397,21 +461,41 @@ export function StudentImport({ onImport }: StudentImportProps) {
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Student ID</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Name</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Email</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Faculty</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Department</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
+                    Student ID
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
+                    Name
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
+                    Email
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
+                    Faculty
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
+                    Department
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {preview.map((student, idx) => (
                   <tr key={idx} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm text-gray-900 font-mono">{student.student_id}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{student.full_name}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{student.email}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{student.faculty}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{student.department}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900 font-mono">
+                      {student.student_id}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {student.full_name}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {student.email}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {student.faculty}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {student.department}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -446,32 +530,52 @@ export function StudentImport({ onImport }: StudentImportProps) {
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Student ID</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Name</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Email</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Faculty</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Department</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
+                    Student ID
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
+                    Name
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
+                    Email
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
+                    Faculty
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
+                    Department
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
+                    Status
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {studentRecords.map((student) => (
                   <tr key={student.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm text-gray-900 font-mono">{student.student_id}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{student.full_name}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{student.email}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
-                      {student.faculties?.name || '-'}
+                    <td className="px-4 py-3 text-sm text-gray-900 font-mono">
+                      {student.student_id}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {student.full_name}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">
-                      {student.departments?.name || '-'}
+                      {student.email}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {student.faculties?.name || "-"}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {student.departments?.name || "-"}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        student.status === 'active'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-gray-100 text-gray-600'
-                      }`}>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          student.status === "active"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-gray-100 text-gray-600"
+                        }`}
+                      >
                         {student.status}
                       </span>
                     </td>
