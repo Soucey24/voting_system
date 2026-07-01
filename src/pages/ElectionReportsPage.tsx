@@ -61,13 +61,14 @@ export function ElectionReportsPage() {
 
   useEffect(() => {
     if (!user?.id) return;
+    const userId = user.id;
 
     async function loadElections() {
       setIsLoading(true);
       setError("");
 
       try {
-        const officerElections = await getOfficerElections(user.id);
+        const officerElections = await getOfficerElections(userId);
         setElections(officerElections);
         if (officerElections.length > 0) {
           setSelectedElectionId(officerElections[0].id);

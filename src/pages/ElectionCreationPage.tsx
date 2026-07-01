@@ -151,9 +151,6 @@ export function ElectionCreationPage() {
             ? form.facultyId
             : form.departmentId;
 
-      const now = new Date();
-      const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-
       await createElection({
         officer_id: user.id,
         title: form.title.trim(),
@@ -169,6 +166,7 @@ export function ElectionCreationPage() {
         enable_payment: false,
         total_voters: 0,
         total_votes_cast: 0,
+        status: "draft",
       });
 
       setSuccess(

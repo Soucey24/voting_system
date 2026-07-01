@@ -90,10 +90,11 @@ export function SlotManagementPage() {
 
   useEffect(() => {
     if (!user?.id) return;
+    const userId = user.id;
 
     async function loadData() {
       try {
-        const electionsData = await getOfficerElections(user.id);
+        const electionsData = await getOfficerElections(userId);
         setElections(electionsData);
 
         const slotRows: SlotRow[] = [];
@@ -235,20 +236,21 @@ export function SlotManagementPage() {
 
     try {
       if (editingSlotId) {
+        const currentSlot = slots.find((item) => item.id === editingSlotId);
         const updates = {
           position_name: form.slotName,
           description: form.description,
           number_of_winners: form.maxApplicants
             ? Number(form.maxApplicants)
             : 1,
-          application_opening: form.openingAt || null,
-          application_closing: form.closingAt || null,
+          application_opening: form.openingAt || undefined,
+          application_closing: form.closingAt || undefined,
           application_fee: Number(form.applicationFee),
           max_applicants: form.maxApplicants
             ? Number(form.maxApplicants)
-            : null,
+            : undefined,
           is_enabled: form.enabled,
-          status: publish ? "published" : slot.status,
+          status: publish ? "published" : (currentSlot?.status ?? "draft"),
         };
         await updatePosition(editingSlotId, updates);
 
@@ -283,12 +285,12 @@ export function SlotManagementPage() {
           number_of_winners: form.maxApplicants
             ? Number(form.maxApplicants)
             : 1,
-          application_opening: form.openingAt || null,
-          application_closing: form.closingAt || null,
+          application_opening: form.openingAt || undefined,
+          application_closing: form.closingAt || undefined,
           application_fee: Number(form.applicationFee),
           max_applicants: form.maxApplicants
             ? Number(form.maxApplicants)
-            : null,
+            : undefined,
           is_enabled: form.enabled,
           status: publish ? "published" : "draft",
           display_order: undefined,

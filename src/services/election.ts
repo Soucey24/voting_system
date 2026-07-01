@@ -7,6 +7,9 @@ import type {
   ElectionVoter,
   ElectionVote,
   ElectionStats,
+  PaymentStatus,
+  Faculty,
+  Department,
 } from '../types';
 
 // Elections
@@ -28,7 +31,7 @@ export async function getFaculties() {
     .order('name');
 
   if (error) throw error;
-  return data as Array<{ id: string; name: string }>; 
+  return data as Faculty[];
 }
 
 export async function getDepartmentsByFacultyId(facultyId: string) {
@@ -39,7 +42,7 @@ export async function getDepartmentsByFacultyId(facultyId: string) {
     .order('name');
 
   if (error) throw error;
-  return data as Array<{ id: string; name: string }>; 
+  return data as Department[];
 }
 
 export async function getElectionById(electionId: string) {

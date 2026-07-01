@@ -36,8 +36,8 @@ interface StudentRecord {
   faculty_id: string | null;
   department_id: string | null;
   status: string;
-  faculties: { name: string } | null;
-  departments: { name: string } | null;
+  faculties: { name: string }[] | null;
+  departments: { name: string }[] | null;
 }
 
 interface StudentImportProps {
@@ -563,10 +563,10 @@ export function StudentImport({ onImport }: StudentImportProps) {
                       {student.email}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">
-                      {student.faculties?.name || "-"}
+                      {student.faculties?.[0]?.name || "-"}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">
-                      {student.departments?.name || "-"}
+                      {student.departments?.[0]?.name || "-"}
                     </td>
                     <td className="px-4 py-3">
                       <span
