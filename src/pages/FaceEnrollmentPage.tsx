@@ -191,31 +191,31 @@ export function FaceEnrollmentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 py-8 px-4">
-      <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl">
-            <Vote className="w-10 h-10 text-white" />
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.16),_transparent_24%),linear-gradient(135deg,_#f8fbff_0%,_#eef5ff_45%,_#dbeafe_100%)] px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-3xl">
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[1.75rem] bg-blue-600 shadow-xl">
+            <Vote className="h-10 w-10 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Facial Enrollment</h1>
-          <p className="text-gray-600">
-            Complete facial enrollment to activate your voting access
+          <h1 className="mb-2 text-3xl font-semibold text-slate-900">Facial Enrollment</h1>
+          <p className="text-base text-slate-600">
+            Complete facial enrollment to activate your voting access and strengthen account security.
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100">
+        <div className="rounded-[2rem] border border-slate-200/80 bg-white p-6 shadow-2xl shadow-slate-900/10 sm:p-8">
           {cameraPermission === 'denied' ? (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertCircle className="w-8 h-8 text-red-500" />
+            <div className="py-8 text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+                <AlertCircle className="h-8 w-8 text-red-500" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">Camera Access Required</h2>
-              <p className="text-gray-600 mb-6">
+              <h2 className="mb-2 text-xl font-semibold text-slate-900">Camera Access Required</h2>
+              <p className="mb-6 text-slate-600">
                 Please allow camera access to complete facial enrollment. Check your browser settings and try again.
               </p>
               <button
                 onClick={requestCameraAccess}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-colors"
+                className="rounded-2xl bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
               >
                 Try Again
               </button>
@@ -223,17 +223,17 @@ export function FaceEnrollmentPage() {
           ) : (
             <>
               <div className="mb-6">
-                <h3 className="font-semibold text-gray-900 mb-3">Before You Begin</h3>
-                <div className="grid sm:grid-cols-2 gap-3">
+                <h3 className="mb-3 font-semibold text-slate-900">Before You Begin</h3>
+                <div className="grid gap-3 sm:grid-cols-2">
                   {[
                     { icon: Sun, text: 'Ensure good lighting' },
                     { icon: Eye, text: 'Look directly at camera' },
                     { icon: User, text: 'Remove face coverings' },
                     { icon: X, text: 'No other faces visible' },
                   ].map((item) => (
-                    <div key={item.text} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                      <item.icon className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                      <span className="text-sm text-gray-700">{item.text}</span>
+                    <div key={item.text} className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3">
+                      <item.icon className="h-5 w-5 flex-shrink-0 text-blue-600" />
+                      <span className="text-sm text-slate-700">{item.text}</span>
                     </div>
                   ))}
                 </div>
@@ -342,8 +342,8 @@ export function FaceEnrollmentPage() {
         </div>
 
         <div className="mt-6 text-center">
-          <p className="text-sm text-gray-500 flex items-center justify-center gap-2">
-            <ScanFace className="w-4 h-4" />
+          <p className="flex items-center justify-center gap-2 text-sm text-slate-500">
+            <ScanFace className="h-4 w-4" />
             Your facial data is encrypted and securely stored
           </p>
         </div>

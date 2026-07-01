@@ -7,6 +7,7 @@ import { CandidateApprovalPage } from "./CandidateApprovalPage";
 import { ElectionMonitoringPage } from "./ElectionMonitoringPage";
 import { ElectionResultsPage } from "./ElectionResultsPage";
 import { ElectionReportsPage } from "./ElectionReportsPage";
+import { PaymentsPage } from "./PaymentsPage";
 import { StudentRecordsPage } from "./StudentRecordsPage";
 
 const sidebarItems = [
@@ -38,6 +39,7 @@ const sidebarItems = [
   },
   { id: "results", label: "Results", icon: "fa-solid fa-trophy" },
   { id: "reports", label: "Reports", icon: "fa-solid fa-file-lines" },
+  { id: "payments", label: "Payments", icon: "fa-solid fa-credit-card" },
   {
     id: "students",
     label: "Student Records",
@@ -191,6 +193,8 @@ export function ElectionOfficerDashboard() {
           <ElectionResultsPage />
         ) : activeTab === "reports" ? (
           <ElectionReportsPage />
+        ) : activeTab === "payments" ? (
+          <PaymentsPage />
         ) : activeTab === "students" ? (
           <StudentRecordsPage />
         ) : activeTab !== "dashboard" ? (
