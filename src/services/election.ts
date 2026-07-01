@@ -111,6 +111,17 @@ export async function getElectionPositions(electionId: string) {
   return data as ElectionPosition[];
 }
 
+export async function getStudentElections() {
+  const { data, error } = await supabase
+    .from('elections')
+    .select('*')
+    .in('status', ['active', 'published'])
+    .order('voting_start', { ascending: true });
+
+  if (error) throw error;
+  return data as Election[];
+}
+
 interface ElectionCandidateVoteTotal extends ElectionCandidate {
   vote_count: number;
 }

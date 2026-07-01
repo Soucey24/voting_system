@@ -82,7 +82,7 @@ export function ElectionOfficerDashboard() {
   const closeSidebar = () => setSidebarOpen(false);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 md:flex">
       <div className="md:hidden bg-white border-b border-gray-200 shadow-sm">
         <div className="flex items-center justify-between px-4 py-3">
           <div>
@@ -110,7 +110,7 @@ export function ElectionOfficerDashboard() {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-blue-900 text-white p-4 shadow-xl transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:static md:inset-auto md:translate-x-0 md:w-64 md:p-6 md:shadow-none`}
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-blue-900 text-white p-4 shadow-xl transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:top-0 md:bottom-0 md:translate-x-0 md:w-64 md:p-6 md:shadow-none md:flex md:flex-col`}
       >
         <div className="mb-6 flex items-center justify-between md:block">
           <div>
@@ -152,7 +152,7 @@ export function ElectionOfficerDashboard() {
         </div>
       </aside>
 
-      <main className="md:ml-64 p-4 md:p-8 h-screen overflow-auto">
+      <main className="flex-1 md:ml-64 p-4 md:p-8 min-h-screen">
         <div className="flex justify-between items-center mb-8">
           <div>
             <h2 className="text-3xl font-bold text-gray-900">
