@@ -1,31 +1,33 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
-import { LandingPage } from './pages/LandingPage';
-import { AboutPage } from './pages/AboutPage';
-import { HowItWorksPage } from './pages/HowItWorksPage';
-import { FAQPage } from './pages/FAQPage';
-import { ContactPage } from './pages/ContactPage';
-import { LoginPage } from './pages/LoginPage';
-import { RegisterPage } from './pages/RegisterPage';
-import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
-import { FaceEnrollmentPage } from './pages/FaceEnrollmentPage';
-import { AdminDashboard } from './pages/AdminDashboard';
-import { StudentDashboard } from './pages/StudentDashboard';
-import { OfficerDashboard } from './pages/OfficerDashboard';
-import { AuditorDashboard } from './pages/AuditorDashboard';
 
-// Election Officer Pages - Comprehensive Modules
-import { CreateElectionSlotPage } from './pages/officer/CreateElectionSlotPage';
-import { PositionManagementNewPage } from './pages/officer/PositionManagementNewPage';
-import { CandidateApprovalNewPage } from './pages/officer/CandidateApprovalNewPage';
-import { PaymentManagementPage } from './pages/officer/PaymentManagementPage';
-import { TurnoutMonitoringNewPage } from './pages/officer/TurnoutMonitoringNewPage';
-import { ResultsPublishingNewPage } from './pages/officer/ResultsPublishingNewPage';
-import { StudentDataUploadNewPage } from './pages/officer/StudentDataUploadNewPage';
-import { ElectionManagementNewPage } from './pages/officer/ElectionManagementNewPage';
-import { ReportsNewPage } from './pages/officer/ReportsNewPage';
+const LandingPage = lazy(() => import('./pages/LandingPage').then((m) => ({ default: m.LandingPage })));
+const AboutPage = lazy(() => import('./pages/AboutPage').then((m) => ({ default: m.AboutPage })));
+const HowItWorksPage = lazy(() => import('./pages/HowItWorksPage').then((m) => ({ default: m.HowItWorksPage })));
+const FAQPage = lazy(() => import('./pages/FAQPage').then((m) => ({ default: m.FAQPage })));
+const ContactPage = lazy(() => import('./pages/ContactPage').then((m) => ({ default: m.ContactPage })));
+const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));
+const RegisterPage = lazy(() => import('./pages/RegisterPage').then((m) => ({ default: m.RegisterPage })));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage })));
+const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage').then((m) => ({ default: m.VerifyEmailPage })));
+const FaceEnrollmentPage = lazy(() => import('./pages/FaceEnrollmentPage').then((m) => ({ default: m.FaceEnrollmentPage })));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard').then((m) => ({ default: m.AdminDashboard })));
+const StudentDashboard = lazy(() => import('./pages/StudentDashboard').then((m) => ({ default: m.StudentDashboard })));
+const OfficerDashboard = lazy(() => import('./pages/OfficerDashboard').then((m) => ({ default: m.OfficerDashboard })));
+const AuditorDashboard = lazy(() => import('./pages/AuditorDashboard').then((m) => ({ default: m.AuditorDashboard })));
+
+const CreateElectionSlotPage = lazy(() => import('./pages/officer/CreateElectionSlotPage').then((m) => ({ default: m.CreateElectionSlotPage })));
+const PositionManagementNewPage = lazy(() => import('./pages/officer/PositionManagementNewPage').then((m) => ({ default: m.PositionManagementNewPage })));
+const CandidateApprovalNewPage = lazy(() => import('./pages/officer/CandidateApprovalNewPage').then((m) => ({ default: m.CandidateApprovalNewPage })));
+const PaymentManagementPage = lazy(() => import('./pages/officer/PaymentManagementPage').then((m) => ({ default: m.PaymentManagementPage })));
+const TurnoutMonitoringNewPage = lazy(() => import('./pages/officer/TurnoutMonitoringNewPage').then((m) => ({ default: m.TurnoutMonitoringNewPage })));
+const ResultsPublishingNewPage = lazy(() => import('./pages/officer/ResultsPublishingNewPage').then((m) => ({ default: m.ResultsPublishingNewPage })));
+const StudentDataUploadNewPage = lazy(() => import('./pages/officer/StudentDataUploadNewPage').then((m) => ({ default: m.StudentDataUploadNewPage })));
+const ElectionManagementNewPage = lazy(() => import('./pages/officer/ElectionManagementNewPage').then((m) => ({ default: m.ElectionManagementNewPage })));
+const ReportsNewPage = lazy(() => import('./pages/officer/ReportsNewPage').then((m) => ({ default: m.ReportsNewPage })));
 
 function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: string[] }) {
   const { isAuthenticated, user, isLoading } = useAuth();
@@ -88,7 +90,17 @@ function PublicPage({ children }: { children: React.ReactNode }) {
 
 function AppRoutes() {
   return (
-    <Routes>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            <p className="text-gray-600">Loading experience...</p>
+          </div>
+        </div>
+      }
+    >
+      <Routes>
       {/* Public Pages */}
       <Route path="/" element={<PublicPage><LandingPage /></PublicPage>} />
       <Route path="/about" element={<PublicPage><AboutPage /></PublicPage>} />
@@ -99,6 +111,7 @@ function AppRoutes() {
       {/* Auth Pages */}
       <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
+      <Route path="/verify-email" element={<PublicRoute><VerifyEmailPage /></PublicRoute>} />
       <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
 
       {/* Face Enrollment */}
@@ -243,7 +256,8 @@ function AppRoutes() {
 
       {/* Catch all */}
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+      </Routes>
+    </Suspense>
   );
 }
 

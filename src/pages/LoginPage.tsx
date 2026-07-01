@@ -108,8 +108,8 @@ export function LoginPage() {
                 />
                 <span className="text-sm text-gray-600">Remember me</span>
               </label>
-              <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                Forgot Password?
+              <Link to="/verify-email" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                Verify Email?
               </Link>
             </div>
 

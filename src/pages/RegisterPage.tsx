@@ -26,6 +26,13 @@ interface FormData {
   confirmPassword: string;
 }
 
+interface VerificationState {
+  codeSent: boolean;
+  code: string;
+  verified: boolean;
+  emailSentAt?: number;
+}
+
 export function RegisterPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
@@ -45,6 +52,12 @@ export function RegisterPage() {
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [studentName, setStudentName] = useState('');
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+  const [verification, setVerification] = useState<VerificationState>({
+    codeSent: false,
+    code: '',
+    verified: false,
+  });
 
   useEffect(() => {
     loadFaculties();
@@ -57,6 +70,16 @@ export function RegisterPage() {
       setDepartments([]);
     }
   }, [formData.facultyId]);
+
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return;
+
+    const timer = window.setInterval(() => {
+      setCooldownSeconds((prev) => (prev > 1 ? prev - 1 : 0));
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [cooldownSeconds]);
 
   async function loadFaculties() {
     try {
@@ -142,6 +165,13 @@ export function RegisterPage() {
     }
   }
 
+  function normalizeEmail(value: string) {
+    const trimmed = value.trim().toLowerCase();
+    if (!trimmed) return '';
+    if (trimmed.includes('@')) return trimmed;
+    return `${trimmed}@htu.edu.gh`;
+  }
+
   function validatePassword(password: string): string | null {
     if (password.length < 8) return 'Password must be at least 8 characters';
     if (!/[A-Z]/.test(password)) return 'Password must include an uppercase letter';
@@ -151,14 +181,116 @@ export function RegisterPage() {
     return null;
   }
 
+  async function sendVerificationCode() {
+    setErrors({});
+
+    if (!formData.email.trim()) {
+      setErrors({ email: 'Email is required' });
+      return;
+    }
+
+    const normalizedEmail = normalizeEmail(formData.email);
+    if (!normalizedEmail.startsWith('032') || !normalizedEmail.includes('@')) {
+      setErrors({ email: 'Please use your university email (e.g., 032xxxx or 032xxxx@htu.edu.gh)' });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('send-verification-code', {
+        body: {
+          email: normalizedEmail,
+          studentId: formData.studentId,
+          studentName,
+        },
+      });
+
+      if (error || !data?.success) {
+        const cooldown = data?.cooldownSeconds;
+        if (cooldown) {
+          setCooldownSeconds(cooldown);
+        }
+        setErrors({ form: error?.message || data?.error || 'Failed to send verification code' });
+        return;
+      }
+
+      setVerification({
+        codeSent: true,
+        code: '',
+        verified: false,
+        emailSentAt: Date.now(),
+      });
+      setCooldownSeconds(60);
+      setErrors({});
+      setStep(3);
+    } catch {
+      setErrors({ form: 'Unable to send verification code. Please try again.' });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function verifyEmailCode() {
+    setErrors({});
+
+    if (!verification.code.trim()) {
+      setErrors({ code: 'Please enter the verification code' });
+      return;
+    }
+
+    if (verification.code.trim().length !== 6) {
+      setErrors({ code: 'Verification code must be 6 digits' });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('send-verification-code', {
+        body: {
+          email: normalizeEmail(formData.email),
+          studentId: formData.studentId,
+          studentName,
+          verifyCode: verification.code.trim(),
+        },
+      });
+
+      if (error || !data?.success) {
+        setErrors({ code: error?.message || data?.error || 'Verification failed' });
+        return;
+      }
+
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ is_email_verified: true })
+        .eq('student_record_id', (await supabase.from('student_records').select('id').eq('student_id', formData.studentId).single()).data?.id);
+
+      if (updateError) {
+        setErrors({ form: 'Verification succeeded, but your account could not be finalized. Please try again.' });
+        return;
+      }
+
+      setVerification((prev) => ({ ...prev, verified: true }));
+      setStep(4);
+    } catch {
+      setErrors({ code: 'Verification failed. Please try again.' });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   async function handleRegister() {
     setErrors({});
     const newErrors: Record<string, string> = {};
 
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!formData.email.startsWith('032') || !formData.email.includes('@')) {
-      newErrors.email = 'Please use your university email (e.g., 032xxxx@htu.edu.gh)';
+    } else {
+      const normalizedEmail = normalizeEmail(formData.email);
+      if (!normalizedEmail.startsWith('032') || !normalizedEmail.includes('@')) {
+        newErrors.email = 'Please use your university email (e.g., 032xxxx or 032xxxx@htu.edu.gh)';
+      }
     }
 
     const passwordError = validatePassword(formData.password);
@@ -178,22 +310,23 @@ export function RegisterPage() {
     setIsLoading(true);
 
     try {
+      const normalizedEmail = normalizeEmail(formData.email);
+
       const { data: studentRecord } = await supabase
         .from('student_records')
         .select('id, email')
         .eq('student_id', formData.studentId)
         .single();
 
-      if (!studentRecord || studentRecord.email !== formData.email) {
+      if (!studentRecord || normalizeEmail(studentRecord.email) !== normalizedEmail) {
         setErrors({ email: 'Email does not match our student records' });
         return;
       }
 
       const { data: { user: authUser } = {}, error: signUpError } = await supabase.auth.signUp({
-        email: formData.email,
+        email: normalizedEmail,
         password: formData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/verify-email`,
           data: {
             email_confirm: true,
           },
@@ -207,7 +340,7 @@ export function RegisterPage() {
 
       if (authUser) {
         const { error: insertError } = await supabase.from('users').insert({
-          email: formData.email,
+          email: normalizedEmail,
           password_hash: '',
           role: 'student',
           full_name: studentName,
@@ -225,7 +358,7 @@ export function RegisterPage() {
 
 
         const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: formData.email,
+          email: normalizedEmail,
           password: formData.password,
         });
 
@@ -546,18 +679,18 @@ export function RegisterPage() {
                     <span>Back</span>
                   </button>
                   <button
-                    onClick={handleRegister}
+                    onClick={sendVerificationCode}
                     disabled={isLoading}
                     className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl font-semibold transition-colors shadow-md"
                   >
                     {isLoading ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        <span>Creating...</span>
+                        <span>Sending...</span>
                       </>
                     ) : (
                       <>
-                        <span>Create Account</span>
+                        <span>Send Code</span>
                         <ArrowRight className="w-5 h-5" />
                       </>
                     )}
@@ -572,22 +705,89 @@ export function RegisterPage() {
               <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Mail className="w-10 h-10 text-blue-600" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">Check Your Email</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">Verify Your Email</h2>
               <p className="text-gray-600 mb-6 max-w-sm mx-auto">
-                We've sent a verification link to <span className="font-medium text-gray-900">{formData.email}</span>. Please click the link to verify your email and complete your registration.
+                We sent a 6-digit verification code to <span className="font-medium text-gray-900">{formData.email}</span>.
               </p>
-              <div className="bg-gray-50 rounded-xl p-4 mb-6">
+
+              <div className="space-y-4 text-left">
+                <div>
+                  <label htmlFor="verificationCode" className="block text-sm font-medium text-gray-700 mb-2">
+                    Enter verification code
+                  </label>
+                  <input
+                    id="verificationCode"
+                    type="text"
+                    inputMode="numeric"
+                    value={verification.code}
+                    onChange={(e) => setVerification((prev) => ({ ...prev, code: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
+                    className={`w-full px-4 py-3.5 rounded-xl border ${errors.code ? 'border-red-500' : 'border-gray-300'} focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all`}
+                    placeholder="123456"
+                  />
+                  {errors.code && <p className="mt-1.5 text-sm text-red-600">{errors.code}</p>}
+                </div>
+
+                <button
+                  onClick={verifyEmailCode}
+                  disabled={isLoading}
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl font-semibold transition-colors shadow-md"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Verifying...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Verify Code</span>
+                      <ArrowRight className="w-5 h-5" />
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={sendVerificationCode}
+                  disabled={isLoading || cooldownSeconds > 0}
+                  className="w-full text-sm text-blue-600 hover:text-blue-700 font-semibold disabled:text-gray-400"
+                >
+                  {cooldownSeconds > 0 ? `Resend code in 00:${String(cooldownSeconds).padStart(2, '0')}` : 'Resend code'}
+                </button>
+              </div>
+
+              <div className="bg-gray-50 rounded-xl p-4 mt-6">
                 <p className="text-sm text-gray-500">
                   After verification, you'll need to complete facial enrollment to activate your voting access.
                 </p>
               </div>
-              <Link
-                to="/login"
-                className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold"
+            </div>
+          )}
+
+          {step === 4 && (
+            <div className="text-center py-8">
+              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle2 className="w-10 h-10 text-green-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">Email verified</h2>
+              <p className="text-gray-600 mb-6 max-w-sm mx-auto">
+                Your email is verified. You can now create your account.
+              </p>
+              <button
+                onClick={handleRegister}
+                disabled={isLoading}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl font-semibold transition-colors shadow-md"
               >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back to Login</span>
-              </Link>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>Creating...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Create Account</span>
+                    <ArrowRight className="w-5 h-5" />
+                  </>
+                )}
+              </button>
             </div>
           )}
         </div>
