@@ -34,16 +34,16 @@ import {
 import { AuditorNavCard } from '../components/auditor/AuditorNavCard';
 
 const statusStyles: Record<string, string> = {
-  active: 'bg-emerald-100 text-emerald-700',
+  active: 'bg-blue-100 text-blue-700',
   closed: 'bg-slate-100 text-slate-700',
-  results_published: 'bg-violet-100 text-violet-700',
+  results_published: 'bg-indigo-100 text-indigo-700',
   draft: 'bg-amber-100 text-amber-700',
-  published: 'bg-blue-100 text-blue-700',
+  published: 'bg-sky-100 text-sky-700',
 };
 
 const severityStyles: Record<string, string> = {
   success: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  info: 'bg-blue-50 text-blue-700 border-blue-200',
+  info: 'bg-sky-50 text-sky-700 border-sky-200',
   warning: 'bg-amber-50 text-amber-700 border-amber-200',
   critical: 'bg-red-50 text-red-700 border-red-200',
 };
@@ -330,8 +330,8 @@ export function AuditorDashboard() {
         <div className="grid gap-6 lg:grid-cols-[1fr_0.85fr]">
           <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                <UserCircle className="w-6 h-6 text-green-600" />
+              <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                <UserCircle className="w-6 h-6 text-blue-600" />
               </div>
               <div>
                 <h2 className="text-xl font-bold text-gray-900">{user?.full_name || 'Auditor'}</h2>
@@ -365,74 +365,74 @@ export function AuditorDashboard() {
 
     return (
       <div className="space-y-6">
-        <div className="rounded-3xl border border-emerald-200 bg-gradient-to-br from-slate-900 via-emerald-900 to-emerald-700 p-6 text-white shadow-sm">
+        <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-900 via-blue-900 to-blue-700 p-6 text-white shadow-[0_20px_60px_-30px_rgba(15,23,42,0.35)]">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-100">UEVS Auditor</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-100">UEVS Auditor</p>
               <h2 className="mt-2 text-2xl font-semibold">Oversight and compliance workspace</h2>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-emerald-50/90">
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-blue-50/90">
                 Monitor election lifecycles, validate candidate submissions, inspect published results, and review security evidence without changing official voting data.
               </p>
             </div>
             <div className="rounded-2xl border border-white/20 bg-white/10 px-4 py-3 backdrop-blur">
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-100">Role scope</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-blue-100">Role scope</p>
               <p className="mt-1 text-sm font-medium text-white">Read-only oversight • evidence review • compliance monitoring</p>
             </div>
           </div>
         </div>
 
         <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-6">
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <div className="rounded-[16px] bg-white p-5 shadow-[0_20px_50px_-40px_rgba(15,23,42,0.25)] border border-slate-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
                 <Calendar className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{elections.length}</p>
-                <p className="text-sm text-gray-500">Elections under review</p>
+                <p className="text-2xl font-bold text-slate-900">{elections.length}</p>
+                <p className="text-sm text-slate-500">Elections under review</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <div className="rounded-[16px] bg-white p-5 shadow-[0_20px_50px_-40px_rgba(15,23,42,0.25)] border border-slate-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
                 <Users className="w-6 h-6 text-emerald-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{registeredStudents}</p>
-                <p className="text-sm text-gray-500">Registered students</p>
+                <p className="text-2xl font-bold text-slate-900">{registeredStudents}</p>
+                <p className="text-sm text-slate-500">Registered students</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <div className="rounded-[16px] bg-white p-5 shadow-[0_20px_50px_-40px_rgba(15,23,42,0.25)] border border-slate-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center">
                 <FileText className="w-6 h-6 text-violet-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{auditActivity.length}</p>
-                <p className="text-sm text-gray-500">Recent audit events</p>
+                <p className="text-2xl font-bold text-slate-900">{auditActivity.length}</p>
+                <p className="text-sm text-slate-500">Recent audit events</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <div className="rounded-[16px] bg-white p-5 shadow-[0_20px_50px_-40px_rgba(15,23,42,0.25)] border border-slate-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
                 <Shield className="w-6 h-6 text-amber-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{turnoutPercentage}%</p>
-                <p className="text-sm text-gray-500">Average turnout</p>
+                <p className="text-2xl font-bold text-slate-900">{turnoutPercentage}%</p>
+                <p className="text-sm text-slate-500">Average turnout</p>
               </div>
             </div>
           </div>
         </div>
 
         <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-          <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+          <div className="bg-white rounded-[16px] border border-slate-200 p-6 shadow-[0_20px_50px_-40px_rgba(15,23,42,0.25)]">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-xl font-bold text-gray-900">Auditor workspace</h2>
@@ -501,22 +501,22 @@ export function AuditorDashboard() {
           </div>
 
           <div className="space-y-6">
-            <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+            <div className="bg-white rounded-[16px] border border-slate-200 p-6 shadow-[0_20px_50px_-40px_rgba(15,23,42,0.25)]">
               <div className="flex items-center gap-2 mb-4">
-                <Shield className="w-5 h-5 text-emerald-600" />
+                <Shield className="w-5 h-5 text-blue-600" />
                 <h2 className="text-xl font-bold text-gray-900">Auditor responsibilities</h2>
               </div>
               <ul className="space-y-2 text-sm text-gray-600">
-                <li className="flex items-start gap-2"><span className="mt-1 h-2 w-2 rounded-full bg-emerald-500" />Monitor election status, turnout, and lifecycle milestones.</li>
-                <li className="flex items-start gap-2"><span className="mt-1 h-2 w-2 rounded-full bg-emerald-500" />Review candidate submissions and approval evidence.</li>
-                <li className="flex items-start gap-2"><span className="mt-1 h-2 w-2 rounded-full bg-emerald-500" />Inspect results publication readiness and audit logs.</li>
-                <li className="flex items-start gap-2"><span className="mt-1 h-2 w-2 rounded-full bg-emerald-500" />Track alerts, compliance reports, and system notifications.</li>
+                <li className="flex items-start gap-2"><span className="mt-1 h-2 w-2 rounded-full bg-blue-500" />Monitor election status, turnout, and lifecycle milestones.</li>
+                <li className="flex items-start gap-2"><span className="mt-1 h-2 w-2 rounded-full bg-blue-500" />Review candidate submissions and approval evidence.</li>
+                <li className="flex items-start gap-2"><span className="mt-1 h-2 w-2 rounded-full bg-blue-500" />Inspect results publication readiness and audit logs.</li>
+                <li className="flex items-start gap-2"><span className="mt-1 h-2 w-2 rounded-full bg-blue-500" />Track alerts, compliance reports, and system notifications.</li>
               </ul>
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+            <div className="bg-white rounded-[16px] border border-slate-200 p-6 shadow-[0_20px_50px_-40px_rgba(15,23,42,0.25)]">
               <div className="flex items-center gap-2 mb-4">
-                <TrendingUp className="w-5 h-5 text-green-600" />
+                <TrendingUp className="w-5 h-5 text-blue-600" />
                 <h2 className="text-xl font-bold text-gray-900">Recent audit activity</h2>
               </div>
               <div className="space-y-3">
@@ -529,7 +529,7 @@ export function AuditorDashboard() {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+            <div className="bg-white rounded-[16px] border border-slate-200 p-6 shadow-[0_20px_50px_-40px_rgba(15,23,42,0.25)]">
               <div className="flex items-center gap-2 mb-4">
                 <AlertTriangle className="w-5 h-5 text-amber-600" />
                 <h2 className="text-xl font-bold text-gray-900">Priority alerts</h2>
@@ -550,8 +550,8 @@ export function AuditorDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b shadow-sm">
+    <div className="min-h-screen bg-[#F8FAFC] text-[#1E293B]">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b border-slate-200 shadow-sm">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center">
@@ -570,16 +570,16 @@ export function AuditorDashboard() {
 
       {sidebarOpen && <div className="lg:hidden fixed inset-0 z-30 bg-gray-900/50" onClick={() => setSidebarOpen(false)} />}
 
-      <aside className={`fixed top-0 left-0 bottom-0 z-40 w-72 bg-white border-r transform transition-transform duration-200 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <aside className={`fixed top-0 left-0 bottom-0 z-40 w-72 bg-[#1E3A8A] text-white shadow-[0_30px_80px_-40px_rgba(15,23,42,0.4)] transform transition-transform duration-200 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <div className="h-full flex flex-col">
           <div className="p-6 border-b hidden lg:block">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center shadow-lg">
                 <Eye className="w-6 h-6 text-white" />
               </div>
               <div>
-                <p className="font-bold text-gray-900">UEVS Auditor</p>
-                <p className="text-xs text-gray-500">Read-only oversight portal</p>
+                <p className="font-bold text-white">UEVS Auditor</p>
+                <p className="text-xs text-slate-200/90">Read-only oversight portal</p>
               </div>
             </div>
           </div>
@@ -595,7 +595,7 @@ export function AuditorDashboard() {
                     setActiveView(item.key);
                     setSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-sm ${active ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'}`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-sm ${active ? 'bg-[#2563EB] text-white font-semibold shadow-[0_10px_30px_-20px_rgba(37,99,235,0.7)]' : 'text-slate-200 hover:bg-white/10 hover:text-white font-medium'}`}
                 >
                   <Icon className="w-5 h-5" />
                   <span className="flex-1 text-left">{item.label}</span>
@@ -607,18 +607,18 @@ export function AuditorDashboard() {
 
           <div className="p-4 border-t">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center shrink-0">
-                <Shield className="w-5 h-5 text-green-600" />
+              <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center shrink-0">
+                <Shield className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-900 truncate">{user?.full_name}</p>
-                <p className="text-xs text-gray-500">Auditor</p>
+                <p className="font-medium text-white truncate">{user?.full_name}</p>
+                <p className="text-xs text-slate-200/80">Auditor</p>
               </div>
-              <button className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors" aria-label="Notifications">
+              <button className="p-2 text-slate-200 hover:text-white hover:bg-white/10 rounded-lg transition-colors" aria-label="Notifications">
                 <Bell className="w-5 h-5" />
               </button>
             </div>
-            <button onClick={logout} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-colors text-sm font-medium">
+            <button onClick={logout} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-colors text-sm font-medium">
               <LogOut className="w-4 h-4" />
               <span>Logout</span>
             </button>
@@ -627,13 +627,13 @@ export function AuditorDashboard() {
       </aside>
 
       <main className="lg:ml-72 pt-16 lg:pt-0">
-        <div className="bg-white border-b border-gray-200">
+        <div className="bg-white border-b border-slate-200/80 shadow-sm">
           <div className="px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{activeView === 'overview' ? 'Auditor Dashboard' : navItems.find((item) => item.key === activeView)?.label}</h1>
               <p className="text-gray-600 mt-1 text-sm">{activeView === 'overview' ? 'Monitor elections, review audit evidence, and oversee security events.' : navItems.find((item) => item.key === activeView)?.description}</p>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-50 text-green-700 text-sm font-medium">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 text-blue-700 text-sm font-medium border border-blue-100">
               <Eye className="w-4 h-4" />
               <span>Read-only access</span>
             </div>
