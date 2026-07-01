@@ -32,33 +32,50 @@ export function StudentSidebar({
   const handleSelect = (item: string) => onSelect?.(item);
 
   const itemBase =
-    "flex items-center gap-3 w-full rounded-lg font-medium transition-colors";
-  const paddedRow = collapsed ? "px-3 py-3 justify-center" : "px-4 py-3";
-
+    "flex items-center rounded-lg font-medium transition-colors w-full";
+  const paddedRow = collapsed
+    ? "px-3 py-3 justify-center"
+    : "px-4 py-3 justify-start";
   const activeClass = "bg-white text-blue-700 shadow-md";
   const idleClass = "text-blue-100 hover:bg-blue-800/60 hover:text-white";
 
+  const menuLabel = (text: string) => (
+    <span
+      className={
+        collapsed
+          ? "opacity-0 w-0 overflow-hidden ml-0 whitespace-nowrap transition-all duration-300"
+          : "opacity-100 w-auto ml-3 whitespace-nowrap transition-all duration-300"
+      }
+    >
+      {text}
+    </span>
+  );
+
   return (
     <aside
-      className={`transition-all duration-300 ease-in-out bg-[#1e40af] text-white h-screen sticky top-0 flex flex-col overflow-hidden ${
-        collapsed ? "w-20" : "w-72"
+      className={`flex flex-col overflow-hidden bg-[#1e40af] text-white z-40 transition-all duration-300 ease-in-out h-screen fixed md:sticky top-0 ${
+        collapsed
+          ? "-translate-x-full md:translate-x-0 md:w-16"
+          : "translate-x-0 w-72 md:w-72 shadow-2xl md:shadow-none"
       }`}
     >
-      {/* Brand */}
-      <div className="flex items-center gap-3 px-4 py-5 border-b border-blue-800/40">
+      {/* Brand header — hidden when collapsed */}
+      <div
+        className={`flex items-center gap-3 px-4 py-5 border-b border-blue-800/40 transition-all duration-300 ${
+          collapsed ? "hidden" : ""
+        }`}
+      >
         <img
           src={htuLogo}
           alt="HTU"
           className="w-12 h-12 rounded-xl bg-white p-1 shadow flex-shrink-0"
         />
-        {!collapsed && (
-          <div className="leading-tight whitespace-nowrap">
-            <p className="text-xl font-extrabold tracking-wide">HTU</p>
-            <p className="text-[11px] text-blue-200 tracking-widest">
-              E-VOTING SYSTEM
-            </p>
-          </div>
-        )}
+        <div className="leading-tight whitespace-nowrap">
+          <p className="text-xl font-extrabold tracking-wide">HTU</p>
+          <p className="text-[11px] text-blue-200 tracking-widest">
+            E-VOTING SYSTEM
+          </p>
+        </div>
       </div>
 
       {/* Menu */}
@@ -75,9 +92,10 @@ export function StudentSidebar({
             className={`${itemBase} ${paddedRow} ${
               activeItem === "dashboard" ? activeClass : idleClass
             }`}
+            title="Dashboard"
           >
             <Home className="w-5 h-5 flex-shrink-0" />
-            {!collapsed && <span>Dashboard</span>}
+            {menuLabel("Dashboard")}
           </button>
 
           <button
@@ -85,9 +103,10 @@ export function StudentSidebar({
             className={`${itemBase} ${paddedRow} ${
               activeItem === "vote" ? activeClass : idleClass
             }`}
+            title="Vote"
           >
             <VoteIcon className="w-5 h-5 flex-shrink-0" />
-            {!collapsed && <span>Vote</span>}
+            {menuLabel("Vote")}
           </button>
 
           {/* Election Results dropdown */}
@@ -95,12 +114,13 @@ export function StudentSidebar({
             <button
               onClick={() => setResultsOpen((o) => !o)}
               className={`${itemBase} ${paddedRow} ${idleClass} ${
-                !collapsed ? "justify-between" : ""
+                collapsed ? "" : "justify-between"
               }`}
+              title="Election Results"
             >
-              <span className="flex items-center gap-3">
+              <span className="flex items-center">
                 <FolderClosed className="w-5 h-5 flex-shrink-0" />
-                {!collapsed && <span>Election Results</span>}
+                {menuLabel("Election Results")}
               </span>
               {!collapsed &&
                 (resultsOpen ? (
@@ -115,14 +135,14 @@ export function StudentSidebar({
                   ["general", "General Election Result"],
                   ["faculty", "Faculty Election Result"],
                   ["department", "Department Election Result"],
-                ].map(([key, label]) => (
+                ].map(([key, text]) => (
                   <button
                     key={key}
                     onClick={() => handleSelect(key)}
                     className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm text-blue-100 hover:bg-blue-800/60 hover:text-white transition-colors"
                   >
                     <Circle className="w-2 h-2" />
-                    <span>{label}</span>
+                    <span>{text}</span>
                   </button>
                 ))}
               </div>
@@ -132,12 +152,13 @@ export function StudentSidebar({
           <button
             onClick={() => handleSelect("slots")}
             className={`${itemBase} ${paddedRow} ${idleClass} ${
-              !collapsed ? "justify-between" : ""
+              collapsed ? "" : "justify-between"
             }`}
+            title="Slots"
           >
-            <span className="flex items-center gap-3">
+            <span className="flex items-center">
               <Award className="w-5 h-5 flex-shrink-0" />
-              {!collapsed && <span>Slots</span>}
+              {menuLabel("Slots")}
             </span>
             {!collapsed && (
               <span className="text-[10px] font-bold bg-red-500 text-white px-2 py-0.5 rounded">
@@ -149,9 +170,10 @@ export function StudentSidebar({
           <button
             onClick={() => handleSelect("announcement")}
             className={`${itemBase} ${paddedRow} ${idleClass}`}
+            title="Announcement"
           >
             <Megaphone className="w-5 h-5 flex-shrink-0" />
-            {!collapsed && <span>Announcement</span>}
+            {menuLabel("Announcement")}
           </button>
         </nav>
 
@@ -166,12 +188,13 @@ export function StudentSidebar({
             <button
               onClick={() => setSettingsOpen((o) => !o)}
               className={`${itemBase} ${paddedRow} ${idleClass} ${
-                !collapsed ? "justify-between" : ""
+                collapsed ? "" : "justify-between"
               }`}
+              title="Settings"
             >
-              <span className="flex items-center gap-3">
+              <span className="flex items-center">
                 <Settings className="w-5 h-5 flex-shrink-0" />
-                {!collapsed && <span>Settings</span>}
+                {menuLabel("Settings")}
               </span>
               {!collapsed &&
                 (settingsOpen ? (
@@ -200,9 +223,10 @@ export function StudentSidebar({
         <button
           onClick={logout}
           className={`${itemBase} ${paddedRow} ${idleClass}`}
+          title="Sign Out"
         >
           <LogOut className="w-5 h-5 flex-shrink-0" />
-          {!collapsed && <span>Sign Out</span>}
+          {menuLabel("Sign Out")}
         </button>
       </div>
     </aside>
