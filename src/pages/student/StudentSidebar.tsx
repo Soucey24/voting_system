@@ -43,8 +43,8 @@ export function StudentSidebar({
     <span
       className={
         collapsed
-          ? "opacity-0 w-0 overflow-hidden ml-0 transition-all duration-300"
-          : "opacity-100 w-auto ml-3 transition-all duration-300"
+          ? "opacity-0 w-0 overflow-hidden ml-0 whitespace-nowrap transition-all duration-300"
+          : "opacity-100 w-auto ml-3 whitespace-nowrap transition-all duration-300"
       }
     >
       {text}
