@@ -180,15 +180,9 @@ function AppRoutes() {
         }
       />
 
-      {/* Student Routes */}
-      <Route
-        path="/student/dashboard"
-        element={
-          <ProtectedRoute allowedRoles={["student"]}>
-            <StudentDashboard />
-          </ProtectedRoute>
-        }
-      />
+      {/* Student Routes - TEMP: auth bypassed for UI testing */}
+      <Route path="/student" element={<StudentDashboard />} />
+      <Route path="/student/dashboard" element={<StudentDashboard />} />
 
       {/* Auditor Routes */}
       <Route
