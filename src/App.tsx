@@ -13,7 +13,7 @@ import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { FaceEnrollmentPage } from "./pages/FaceEnrollmentPage";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import { ElectionOfficerDashboard } from "./pages/ElectionOfficerDashboard";
-import { StudentDashboard } from "./pages/StudentDashboard";
+import { StudentDashboard } from "./pages/student";
 import { AuditorDashboard } from "./pages/AuditorDashboard";
 
 function ProtectedRoute({
