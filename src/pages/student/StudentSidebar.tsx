@@ -31,23 +31,25 @@ export function StudentSidebar({
 
   const handleSelect = (item: string) => onSelect?.(item);
 
-  const label = (text: string) => (
+  const itemBase =
+    "flex items-center rounded-lg font-medium transition-colors w-full";
+  const paddedRow = collapsed
+    ? "px-3 py-3 justify-center"
+    : "px-4 py-3 justify-start";
+  const activeClass = "bg-white text-blue-700 shadow-md";
+  const idleClass = "text-blue-100 hover:bg-blue-800/60 hover:text-white";
+
+  const menuLabel = (text: string) => (
     <span
       className={
         collapsed
-          ? "opacity-0 w-0 overflow-hidden pointer-events-none transition-all duration-300"
-          : "opacity-100 w-auto transition-all duration-300"
+          ? "opacity-0 w-0 overflow-hidden ml-0 transition-all duration-300"
+          : "opacity-100 w-auto ml-3 transition-all duration-300"
       }
     >
       {text}
     </span>
   );
-
-  const itemBase =
-    "flex items-center rounded-lg font-medium transition-colors w-full";
-  const paddedRow = collapsed ? "px-3 py-3 justify-center" : "px-4 py-3";
-  const activeClass = "bg-white text-blue-700 shadow-md";
-  const idleClass = "text-blue-100 hover:bg-blue-800/60 hover:text-white";
 
   return (
     <aside
@@ -93,7 +95,7 @@ export function StudentSidebar({
             title="Dashboard"
           >
             <Home className="w-5 h-5 flex-shrink-0" />
-            {label("Dashboard")}
+            {menuLabel("Dashboard")}
           </button>
 
           <button
@@ -104,7 +106,7 @@ export function StudentSidebar({
             title="Vote"
           >
             <VoteIcon className="w-5 h-5 flex-shrink-0" />
-            {label("Vote")}
+            {menuLabel("Vote")}
           </button>
 
           {/* Election Results dropdown */}
@@ -116,9 +118,9 @@ export function StudentSidebar({
               }`}
               title="Election Results"
             >
-              <span className="flex items-center gap-3 justify-center">
+              <span className="flex items-center">
                 <FolderClosed className="w-5 h-5 flex-shrink-0" />
-                {label("Election Results")}
+                {menuLabel("Election Results")}
               </span>
               {!collapsed &&
                 (resultsOpen ? (
@@ -154,9 +156,9 @@ export function StudentSidebar({
             }`}
             title="Slots"
           >
-            <span className="flex items-center gap-3 justify-center">
+            <span className="flex items-center">
               <Award className="w-5 h-5 flex-shrink-0" />
-              {label("Slots")}
+              {menuLabel("Slots")}
             </span>
             {!collapsed && (
               <span className="text-[10px] font-bold bg-red-500 text-white px-2 py-0.5 rounded">
@@ -171,7 +173,7 @@ export function StudentSidebar({
             title="Announcement"
           >
             <Megaphone className="w-5 h-5 flex-shrink-0" />
-            {label("Announcement")}
+            {menuLabel("Announcement")}
           </button>
         </nav>
 
@@ -190,9 +192,9 @@ export function StudentSidebar({
               }`}
               title="Settings"
             >
-              <span className="flex items-center gap-3 justify-center">
+              <span className="flex items-center">
                 <Settings className="w-5 h-5 flex-shrink-0" />
-                {label("Settings")}
+                {menuLabel("Settings")}
               </span>
               {!collapsed &&
                 (settingsOpen ? (
@@ -224,7 +226,7 @@ export function StudentSidebar({
           title="Sign Out"
         >
           <LogOut className="w-5 h-5 flex-shrink-0" />
-          {label("Sign Out")}
+          {menuLabel("Sign Out")}
         </button>
       </div>
     </aside>
