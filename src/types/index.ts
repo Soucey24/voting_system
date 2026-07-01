@@ -167,6 +167,28 @@ export interface ElectionVote {
   created_at: string;
 }
 
+export interface AuditLog {
+  id: string;
+  action: string;
+  details?: string;
+  title?: string;
+  message?: string;
+  actor?: string;
+  severity: 'info' | 'warning' | 'critical' | 'success';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SecurityEvent {
+  id: string;
+  title: string;
+  message?: string;
+  source?: string;
+  severity: 'info' | 'warning' | 'critical';
+  created_at: string;
+  updated_at: string;
+}
+
 export interface ElectionStats {
   totalVoters: number;
   totalVotesCast: number;

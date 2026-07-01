@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import type { AuditLog, SecurityEvent } from '../types';
 
 export interface AuditorElectionItem {
   id: string;
@@ -74,6 +75,12 @@ export interface AuditorDashboardData {
   activity: AuditorUserActivity[];
   notifications: AuditorNotificationItem[];
   registeredStudents: number;
+}
+
+export interface AuditorDashboardSummary {
+  auditLogCount: number;
+  securityEventCount: number;
+  pendingCandidateCount: number;
 }
 
 type Severity = 'info' | 'warning' | 'success' | 'critical';
@@ -580,4 +587,62 @@ export async function getAuditorDashboardData(): Promise<AuditorDashboardData> {
       registeredStudents: 0,
     };
   }
+}
+
+export async function getAuditorDashboardSummary(): Promise<AuditorDashboardSummary> {
+  const [auditLogsResult, securityEventsResult, pendingCandidatesResult] = await Promise.allSettled([
+    supabase.from('audit_logs').select('id', { count: 'exact', head: true }),
+    supabase.from('security_events').select('id', { count: 'exact', head: true }),
+    supabase.from('election_candidates').select('id', { count: 'exact', head: true }).eq('application_status', 'pending'),
+  ]);
+
+  return {
+    auditLogCount: getQueryCount(auditLogsResult),
+    securityEventCount: getQueryCount(securityEventsResult),
+    pendingCandidateCount: getQueryCount(pendingCandidatesResult),
+  };
+}
+
+export async function getAuditorAuditLogs(limit = 10) {
+  const { data, error } = await supabase
+    .from<AuditLog>('audit_logs')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function getAuditorSecurityEvents(limit = 10) {
+  const { data, error } = await supabase
+    .from<SecurityEvent>('security_events')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function createAuditLog(log: Omit<AuditLog, 'id' | 'created_at' | 'updated_at'>) {
+  const { data, error } = await supabase
+    .from<AuditLog>('audit_logs')
+    .insert([log])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function createSecurityEvent(event: Omit<SecurityEvent, 'id' | 'created_at' | 'updated_at'>) {
+  const { data, error } = await supabase
+    .from<SecurityEvent>('security_events')
+    .insert([event])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
 }

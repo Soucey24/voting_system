@@ -19,12 +19,15 @@ import {
   Lock,
   UserCircle,
   ChevronRight,
+  RefreshCw,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   getAuditorDashboardData,
+  getAuditorDashboardSummary,
   type AuditorActivityItem,
   type AuditorCandidateReview,
+  type AuditorDashboardSummary,
   type AuditorElectionItem,
   type AuditorNotificationItem,
   type AuditorResultSummary,
@@ -60,6 +63,8 @@ export function AuditorDashboard() {
   const [activityLog, setActivityLog] = useState<AuditorUserActivity[]>([]);
   const [notifications, setNotifications] = useState<AuditorNotificationItem[]>([]);
   const [registeredStudents, setRegisteredStudents] = useState(0);
+  const [summary, setSummary] = useState<AuditorDashboardSummary | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -68,7 +73,7 @@ export function AuditorDashboard() {
   useEffect(() => {
     async function loadData() {
       setIsLoading(true);
-      const data = await getAuditorDashboardData();
+      const [data, summaryData] = await Promise.all([getAuditorDashboardData(), getAuditorDashboardSummary()]);
       setElections(data.elections);
       setAuditActivity(data.auditActivity);
       setSecurityAlerts(data.securityAlerts);
@@ -77,11 +82,25 @@ export function AuditorDashboard() {
       setActivityLog(data.activity);
       setNotifications(data.notifications);
       setRegisteredStudents(data.registeredStudents);
+      setSummary(summaryData);
       setIsLoading(false);
     }
 
     loadData();
   }, []);
+
+  async function refreshSummary() {
+    try {
+      setSummaryLoading(true);
+      const s = await getAuditorDashboardSummary();
+      setSummary(s);
+    } catch (err) {
+      // ignore - non-fatal, dashboard will keep showing previous data
+      // could add toast notification here
+    } finally {
+      setSummaryLoading(false);
+    }
+  }
 
   const filteredElections = useMemo(() => {
     const term = searchQuery.trim().toLowerCase();
@@ -94,6 +113,9 @@ export function AuditorDashboard() {
   const totalVotesCast = elections.reduce((sum, election) => sum + election.totalVotesCast, 0);
   const totalVoters = elections.reduce((sum, election) => sum + election.totalVoters, 0);
   const turnoutPercentage = totalVoters > 0 ? Math.round((totalVotesCast / totalVoters) * 100) : 0;
+  const auditLogCount = summary?.auditLogCount ?? auditActivity.length;
+  const securityEventCount = summary?.securityEventCount ?? securityAlerts.length;
+  const pendingCandidateCount = summary?.pendingCandidateCount ?? candidates.filter((candidate) => candidate.status.toLowerCase() === 'pending').length;
 
   const navItems: Array<{ key: AuditorView; label: string; icon: typeof LayoutDashboard; description: string }> = [
     { key: 'overview', label: 'Dashboard', icon: LayoutDashboard, description: 'At-a-glance monitoring' },
@@ -381,7 +403,7 @@ export function AuditorDashboard() {
           </div>
         </div>
 
-        <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-6">
+        <div className="grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3 gap-6">
           <div className="rounded-[16px] bg-white p-5 shadow-[0_20px_50px_-40px_rgba(15,23,42,0.25)] border border-slate-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -426,6 +448,30 @@ export function AuditorDashboard() {
               <div>
                 <p className="text-2xl font-bold text-slate-900">{turnoutPercentage}%</p>
                 <p className="text-sm text-slate-500">Average turnout</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-[16px] bg-white p-5 shadow-[0_20px_50px_-40px_rgba(15,23,42,0.25)] border border-slate-200">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-sky-100 rounded-xl flex items-center justify-center">
+                <Activity className="w-6 h-6 text-sky-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-slate-900">{auditLogCount}</p>
+                <p className="text-sm text-slate-500">Audit log entries</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-[16px] bg-white p-5 shadow-[0_20px_50px_-40px_rgba(15,23,42,0.25)] border border-slate-200">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-rose-100 rounded-xl flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6 text-rose-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-slate-900">{securityEventCount}</p>
+                <p className="text-sm text-slate-500">Security alerts</p>
               </div>
             </div>
           </div>
@@ -633,9 +679,20 @@ export function AuditorDashboard() {
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{activeView === 'overview' ? 'Auditor Dashboard' : navItems.find((item) => item.key === activeView)?.label}</h1>
               <p className="text-gray-600 mt-1 text-sm">{activeView === 'overview' ? 'Monitor elections, review audit evidence, and oversee security events.' : navItems.find((item) => item.key === activeView)?.description}</p>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 text-blue-700 text-sm font-medium border border-blue-100">
-              <Eye className="w-4 h-4" />
-              <span>Read-only access</span>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-blue-50 text-blue-700 text-sm font-medium border border-blue-100">
+                <Eye className="w-4 h-4" />
+                <span>Read-only access</span>
+              </div>
+              <button
+                onClick={refreshSummary}
+                disabled={summaryLoading}
+                className="flex items-center gap-2 px-3 py-2 rounded-full bg-white border text-sm font-medium hover:bg-slate-50 disabled:opacity-60"
+                title="Refresh summary"
+              >
+                <RefreshCw className={`w-4 h-4 ${summaryLoading ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">Refresh</span>
+              </button>
             </div>
           </div>
         </div>
