@@ -8,7 +8,6 @@ const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!SERVICE_ROLE_KEY) {
   console.error('❌ Error: SUPABASE_SERVICE_ROLE_KEY environment variable is required');
-  console.error('   Get it from: https://app.supabase.com -> Settings -> API');
   console.error('\n   Usage: SUPABASE_SERVICE_ROLE_KEY=your_key node scripts/seed-election-officer.js');
   process.exit(1);
 }

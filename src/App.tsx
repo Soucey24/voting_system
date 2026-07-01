@@ -1,3 +1,4 @@
+import { Suspense, type ReactNode } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Header } from "./components/layout/Header";
@@ -20,7 +21,7 @@ function ProtectedRoute({
   children,
   allowedRoles,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   allowedRoles?: string[];
 }) {
   const { isAuthenticated, user, isLoading } = useAuth();
@@ -53,7 +54,7 @@ function ProtectedRoute({
   return <>{children}</>;
 }
 
-function PublicRoute({ children }: { children: React.ReactNode }) {
+function PublicRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated, user } = useAuth();
 
   if (isAuthenticated && user) {
@@ -69,7 +70,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-function PublicPage({ children }: { children: React.ReactNode }) {
+function PublicPage({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -81,7 +82,17 @@ function PublicPage({ children }: { children: React.ReactNode }) {
 
 function AppRoutes() {
   return (
-    <Routes>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            <p className="text-gray-600">Loading experience...</p>
+          </div>
+        </div>
+      }
+    >
+      <Routes>
       {/* Public Pages */}
       <Route
         path="/"
@@ -202,7 +213,8 @@ function AppRoutes() {
 
       {/* Catch all */}
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+      </Routes>
+    </Suspense>
   );
 }
 
